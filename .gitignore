@@ -1,0 +1,11 @@
+# Ignore the files that are created after compilation of main.tex
+
+docs/*.aux
+docs/*.bbl
+docs/*.bcf
+docs/*.blg
+docs/*.log
+docs/*.out
+docs/*.xml
+docs/*.gz
+docs/*.toc
