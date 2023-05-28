@@ -1,4 +1,4 @@
-# Ignore the files that are created after compilation of main.tex
+# Ignore the files that are created after compilation of gp.tex
 
 docs/*.aux
 docs/*.bbl

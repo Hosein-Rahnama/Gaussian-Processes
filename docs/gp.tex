@@ -18,7 +18,7 @@
 \usepackage{cleveref}
 
 \usepackage{graphicx}
-\usepackage[skip=0cm,font=footnotesize,labelfont=bf,labelsep=period]{caption}
+\usepackage[skip=0cm, font=footnotesize, labelfont=bf, labelsep=period]{caption}
 \usepackage[dvipsnames]{xcolor}
 
 \usepackage[backend=biber, style=ieee]{biblatex}
@@ -30,13 +30,12 @@
 \newtheorem{cor}[thm]{Corollary}
 \theoremstyle{definition}
 \newtheorem{defn}{Definition}[section]
-\theoremstyle{definition}
 \newtheorem{exmp}{Example}[section]
+\newtheorem*{rem}{Remark}
+
 \crefname{lem}{Lemma}{Lemmas}
 \crefname{thm}{Theorem}{Theorems}
-\theoremstyle{remark}
-\newtheorem*{rem}{Remark}
-\newtheorem*{note}{Note}
+
 \newenvironment{prf}{\noindent\textbf{Proof.}}{\hfill$\blacksquare$}
 
 \counterwithin{equation}{section}
@@ -73,13 +72,16 @@ In the first part of this tutorial, we express the mathematics that we will empl
 \subsection{Cholesky Decomposition}
 This decomposition for symmetric positive definite (PD) matrices is in perfect analogy with the square root of a positive real number.
 \begin{thm}[Cholesky Decomposition]\label{thm:chol}
-Let $\mathsf{A} \in \mathbb{R}^{n\times n}$ be a real square matrix. The matrix $\mathsf{A}$ is symmetric positive definite if and only if there exists a non-singular lower-triangular matrix $\mathsf{L}\in\mathbb{R}^{n \times n}$ such that $\mathsf{A}=\mathsf{L} \mathsf{L}^{\top}$. This is called the \textbf{Cholesky decomposition} of $\mathsf{A}$ and $\mathsf{L}$ is called the \textbf{Cholesky factor} of $\mathsf{A}$.
+Let $\mathsf{A} \in \mathfrak{M}_n(\mathbb{R})$ be a real square matrix. The matrix $\mathsf{A}$ is symmetric positive definite if and only if there exists a non-singular lower-triangular matrix $\mathsf{L}\in \mathfrak{M}_n(\mathbb{R})$ such that $\mathsf{A}=\mathsf{L} \mathsf{L}^{\top}$. This is called the \textbf{Cholesky decomposition} of $\mathsf{A}$ and $\mathsf{L}$ is called the \textbf{Cholesky factor} of $\mathsf{A}$.
 \end{thm}
-From \cref{thm:chol} and the fact that the determinant of a triangular matrix equals the product of its diagonal elements, it follows quickly that
+\begin{rem}
+Factoring the diagonal elements of $\mathsf{L}$ in the Cholesky decomposition of $\mathsf{A}$, we arrive at $\mathsf{A}=\bar{\mathsf{L}}\mathsf{D}\bar{\mathsf{L}}^\top$ with $\mathsf{D}$ a digonal matrix with positive entries and $\bar{\mathsf{L}}$ an invertible lower triangular matrix with ones on its diagonal. This form is unique, while the Cholesky decompositon is not. More specifically, if $\mathsf{L}$ is a Cholesky factor of matrix $\mathsf{A}$ so is $-\mathsf{L}$.
+\end{rem}
+From \cref{thm:chol} and the facts that $\det\mathsf{A}\mathsf{B}=\det\mathsf{A}\det\mathsf{B}$, $\det\mathsf{A}=\det\mathsf{A}^\top$, it follows quickly that
 \begin{cor}
-If $\mathsf{A} \in \mathbb{R}^{n\times n}$  is sysmetric positive definite then its determinant is given by $\det\mathsf{A} = (\det\mathsf{L})^2 = \prod_{i=1}^{n}l_{ii}^2$, where $l_{ii}$ are the diagonal elements of the cholesky factor of $\mathsf{A}$.
+If $\mathsf{A} \in \mathfrak{M}_n(\mathbb{R})$  is sysmetric positive definite then its determinant is given by $\det\mathsf{A} = (\det\mathsf{L})^2 $.
 \end{cor}
-The Cholesky decomposition is numerically highly stable for solving symmetric positive definite linear systems of equations and is the main method of choice for computation if it is available. Below is an algorithm that remedies the computation of Cholesky decomposition. The \cref{alg:chol} simply assumes that matrix $\mathsf{A}$ has a Cholesky decomposition and exploits the fact that
+The Cholesky decomposition is numerically stable for solving symmetric positive definite linear systems of equations and is the main method of choice for computation if it is available. Below is an algorithm that remedies the computation of Cholesky decomposition. The \Cref{alg:chol} simply assumes that matrix $\mathsf{A}$ has a Cholesky decomposition and exploits the fact that
 \begin{equation*}
 a_{jk}  = \sum_{i=1}^{n}l_{ji}l_{ki} = 
 \sum_{i=1}^{\min\{j, k\}}l_{ji}l_{ki} = 
@@ -88,7 +90,7 @@ a_{jk}  = \sum_{i=1}^{n}l_{ji}l_{ki} =
 \eqnum
 \label{eq:chol}
 \end{equation*}
-to calculate the columns of $L$ inductively. When $k=1$, we observe that 
+to calculate the columns of $\mathsf{L}$ inductively. When $k=1$, we observe that 
 \begin{equation*}
 a_{j1} = \sum_{i=1}^{1}l_{ji}l_{1i} = l_{j1}l_{11}, \qquad j = 1,\dots, n
 \eqnum
@@ -99,14 +101,14 @@ l_{11} &= \sqrt{a_{11} } \\
 l_{j1} &= a_{j1}/l_{11}, \qquad j=2,\dots,n,
 \eqnum
 \end{align*}
-meaning that the first column of $L$ is computed. Suppose that we have computed the first $k-1$ columns of $L$ and we want to compute the $k$th column. Again, by considering the cases $j=k$ and $j>k$ in \cref{eq:chol}, we obtain the following inductive equations
+meaning that the first column of $\mathsf{L}$ is computed. Suppose that we have computed the first $k-1$ columns of $\mathsf{L}$ and we want to compute the $k$th column. Again, by considering the cases $j=k$ and $j>k$ in \cref{eq:chol}, we obtain the following inductive equations
 \begin{alignat*}{2}
 l_{kk} &= \Big(a_{kk} - \sum_{i=1}^{k-1}l_{ki}^2\Big)^{\frac{1}{2}}, && k=2,\dots,n, \\ 
 l_{jk} &= \Big(a_{jk}-\sum_{i=1}^{k-1}l_{ki}l_{ji}\Big)/l_{kk}, \qquad && j = k+1,\dots, n,
 \eqnum
 \label{eq:chol:alg}
 \end{alignat*}
-where all of the terms on the right hand sides (RHS) are known according to the hypothesis of induction. Using \cref{alg:chol}, it can be easily verified that
+where all of the terms on the right hand sides (RHS) are known according to the hypothesis of induction. Using \Cref{alg:chol}, it can be easily verified that
 \begin{cor}
 Time complexity of computing the Cholesky decomposition of a symmetic PD matrix $A$ is of order $\mathcal{O}(\frac{1}{6}n^3)$.
 \end{cor}
@@ -121,12 +123,12 @@ Given the Cholesky decomposition, solving the symmetric PD linear system $\maths
 \hspace*{\algorithmicindent} {\scshape Input}: $\mathsf{A}$\\
 \hspace*{\algorithmicindent} {\scshape Output}: $\mathsf{L}$
 \begin{algorithmic}[1]
-\LineComment{Initialize the first column of $L$ with zeros.}
+\LineComment{Initialize the first column of $\mathsf{L}$ with zeros.}
 \For{$j=1$ \textbf{to} $n$}
 	\State $l_{j1} = 0$;
 \EndFor
-\LineComment{Calculate $l_{kk}$.}
 \For{$k=1$ \textbf{to} $n$}
+    \LineComment{Calculate $l_{kk}$.}
 	\State sum = $0$;
 	\For{$i=1$ \textbf{to} $k-1$}
 		\State sum = sum + $l_{ki}l_{ki}$;
@@ -134,19 +136,18 @@ Given the Cholesky decomposition, solving the symmetric PD linear system $\maths
 	\State $l_{kk} = a_{kk}- \text{sum}$;
 	\LineComment{Check for positive definitness.}
 	\If{$l_{kk} \leq 0$}
-		\State $A$ is not positive definite;
-		\State exit;
-	\Else
-		\State $l_{kk} = \sqrt{l_{kk}}$;
-	\EndIf
-\EndFor
-\LineComment{Calculate $l_{jk}$ for $j>k$.}
-\For{$j=k+1$ \textbf{to} $n$}
-	\State sum = $0$;
-	\For{$i=1$ \textbf{to} $k-1$}
-		\State sum = sum + $l_{ki}l_{ji}$;
-	\EndFor
-	\State $l_{jk}=(a_{jk}-\text{sum})/l_{kk}$;
+		\State print $A$ is not positive definite;
+		\State return;
+    \EndIf
+	\State $l_{kk} = \sqrt{l_{kk}}$;
+    \LineComment{Calculate $l_{jk}$ for $j>k$.}
+    \For{$j=k+1$ \textbf{to} $n$}
+    	\State sum = $0$;
+    	\For{$i=1$ \textbf{to} $k-1$}
+    		\State sum = sum + $l_{ki}l_{ji}$;
+    	\EndFor
+    	\State $l_{jk}=(a_{jk}-\text{sum})/l_{kk}$;
+    \EndFor
 \EndFor
 \end{algorithmic}
 \end{algorithm}
