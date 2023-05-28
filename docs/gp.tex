@@ -15,7 +15,7 @@
 \usepackage{algpseudocode}
 
 \usepackage[colorlinks=true, citecolor=blue]{hyperref}
-\usepackage{cleveref}
+\usepackage[capitalise]{cleveref}
 
 \usepackage{graphicx}
 \usepackage[skip=0cm, font=footnotesize, labelfont=bf, labelsep=period]{caption}
@@ -155,7 +155,7 @@ Given the Cholesky decomposition, solving the symmetric PD linear system $\maths
 \subsection{Matrix Inversion Lemma}
 Here, we shall discuss an important lemma for inverting a partioned matrix and its imediate consequences. It will be useful in dealing with MVN PDFs. We have the following theorem.
 \begin{thm}[Matrix Inversion Lemma]\label{thm:MIL}
-Consider a general invertible partioned matrix $\mathsf{M}\in\mathbb{R}^{n+m,n+m}$ as
+Consider a general invertible partioned matrix $\mathsf{M}\in\mathfrak{M}_{n+m}(\mathbb{R})$ as
 \begin{equation*}
 \mathsf{M} =
 \begin{bmatrix}
@@ -164,7 +164,7 @@ Consider a general invertible partioned matrix $\mathsf{M}\in\mathbb{R}^{n+m,n+m
 \end{bmatrix}
 \eqnum
 \end{equation*}
-where $\mathsf{A}\in\mathbb{R}^{n, n}$ and $\mathsf{B}\in\mathbb{R}^{m,m}$ are invertible, $\mathsf{U}\in\mathbb{R}^{n,m}$ and $\mathsf{V}\in\mathbb{R}^{m,n}$. Then, $\mathsf{M}^{-1}$ is given by
+where $\mathsf{A}\in\mathfrak{M}_n(\mathbb{R})$ and $\mathsf{B}\in\mathfrak{M}_m(\mathbb{R})$ are invertible. Furthremore, $\mathsf{U}\in\mathfrak{M}^n_m(\mathbb{R})$ and $\mathsf{V}\in\mathfrak{M}^m_n(\mathbb{R})$ are $n$ by $m$ and $m$ by $n$ matrices, respectively. Then, $\mathsf{M}^{-1}$ is given by
 \begin{equation*}
 \mathsf{M}^{-1} =
 \begin{bmatrix}
@@ -236,13 +236,13 @@ Next, we shall make the top right block of $\mathsf{R}\mathsf{M}$ zero by a colu
 \eqnum
 \label{eq:D:RMC}
 \end{equation*}
-Now, we note that $\mathsf{M} = \mathsf{R}^{-1}\mathsf{D}\mathsf{C}^{-1}$, so the inverse can be calculated as $\mathsf{M}^{-1} = \mathsf{C}\mathsf{D}^{-1}\mathsf{R}$. This conclusion is valid since $\mathsf{R}$, $\mathsf{C}$ and $\mathsf{D}$ are invertible. Invertibility of $\mathsf{R}$ and $\mathsf{C}$ is followed from their definition and the fact that 
+Now, we note that $\mathsf{M} = \mathsf{R}^{-1}\mathsf{D}\mathsf{C}^{-1}$, so the inverse can be calculated as $\mathsf{M}^{-1} = \mathsf{C}\mathsf{D}^{-1}\mathsf{R}$. This conclusion is valid since $\mathsf{R}$, $\mathsf{C}$ and $\mathsf{D}$ are invertible. More specifically, notice that
 \begin{equation}
-\det\mathsf{R} = \det\mathsf{C} = \det\mathsf{I_n}\det\mathsf{I}_m = 1
+\det\mathsf{R} = \det\mathsf{C} = \det\mathsf{I_n}\det\mathsf{I}_m = 1,
 \eqnum
 \label{eq:det:RC}
 \end{equation}
-Matrix $\mathsf{D}$ is invertible since $\mathsf{A}$ and $\mathsf{M}/\mathsf{A}$ are invertible. Indeed, $\mathsf{A}$ is invertible by the assumptions of the theorem and invertiblity of $\mathsf{M}/\mathsf{A}$ is followed from that of $\mathsf{A}$. Otherwise, according to \cref{eq:inv:RM}, the last $m$ rows of $\mathsf{R}\mathsf{M}$ will be linearly independent, so $\mathsf{R}\mathsf{M}$ is not invertible, which implies that $\mathsf{M}$ is not invertible, contradicting the assumptions of the theorem. Finally, we have
+which implies invertibility of $\mathsf{R}$ and $\mathsf{C}$. Moreover, matrix $\mathsf{D}$ is invertible since by \cref{eq:D:RMC} it is the product of three invertible matrices. Futhremore, invertiblity of $\mathsf{D}$ is equivalent to invertibility of $\mathsf{A}$ and $\mathsf{M}/\mathsf{A}$. Finally, we have
 \begin{align*}
 \mathsf{M}^{-1} &= \mathsf{C}\mathsf{D}^{-1}\mathsf{R} \\
 &= 
@@ -284,7 +284,7 @@ Matrix $\mathsf{D}$ is invertible since $\mathsf{A}$ and $\mathsf{M}/\mathsf{A}$
 -(\mathsf{M}/\mathsf{A})^{-1}\mathsf{V}\mathsf{A}^{-1} & (\mathsf{M}/\mathsf{A})^{-1}
 \end{bmatrix},
 \end{align*}
-which proves \cref{eq:schur:MA}. Furthermore, combining \cref{eq:D:RMC} and \cref{eq:det:RC} we obtain
+which proves \cref{eq:schur:MA}. Furthermore, combining Eqs. \eqref{eq:D:RMC} and \eqref{eq:det:RC} we obtain
 \begin{equation*}
 \det\mathsf{M} = \det\mathsf{R}^{-1}\mathsf{D}\mathsf{C}^{-1} = \det\mathsf{R}^{-1} \det\mathsf{D} \det\mathsf{C}^{-1}
 = \det\mathsf{D} = \det\mathsf{A}\det(\mathsf{M}/\mathsf{A}),
@@ -292,7 +292,7 @@ which proves \cref{eq:schur:MA}. Furthermore, combining \cref{eq:D:RMC} and \cre
 which proves the seond equality in \cref{eq:schur:det}. The proof for the remaining part of the theorem is very similar and we leave it as an exercise. Indeed, it is proved by first making the bottom left block of $\mathsf{M}$ zero by a column operation $\overbar{\mathsf{C}}$ and then making the top right block of $\mathsf{M}\overbar{\mathsf{C}}$ zero by a row operation $\overbar{\mathsf{R}}$.
 \end{prf}
 \begin{exmp}
-An application of the above thoerem is to reduce the computational cost in certain circumtances. Consider the equality of the upper left terms in eqs. \eqref{eq:schur:MA} and \eqref{eq:schur:MB}
+An application of the above thoerem is to reduce the computational cost in certain circumtances. Consider the equality of the upper left terms in Eqs. \eqref{eq:schur:MA} and \eqref{eq:schur:MB}
 \begin{equation*}
 (\mathsf{M}/\mathsf{B})^{-1} = \mathsf{A}^{-1} + \mathsf{A}^{-1}\mathsf{U}(\mathsf{M}/\mathsf{A})^{-1}\mathsf{V}\mathsf{A}^{-1},
 \eqnum
