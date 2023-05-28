@@ -313,14 +313,20 @@ where the left hand side (LHS) requires the inversion of an $n\times n$ matrix, 
 \end{exmp}
 
 \subsection{Univariate Gaussian Distribution}
-The most widely used distribution in statistics and machine learning is the Gaussian or normal distribution. In this subsection, we address that how one cam sample from a univariate Gaussian distribution.
+One of most widely used distributions in statistics and machine learning is the Gaussian or normal distribution. In this subsection, we address how one can sample from a univariate Gaussian distribution.
 \begin{defn}
 A continuous random variable $X$ is said to be a \textbf{normal} random variable, if its PDF is
 \begin{equation*}
 p_{X}(x) = \mathcal{N}(x; \mu, \sigma) := \frac{1}{\sqrt{2\pi\sigma^2}}\exp\Big(-\frac{(x-\mu)^2}{2\sigma^2}\Big).
 \eqnum
 \end{equation*}
-The distribution is determined by $\mu$ and $\sigma$. It is easily verified that the mean is $\mathbb{E}(X) = \mu$ and the variance is $\mathbb{V}(X)=\sigma$. Furthermore, the cumulative probability function (CDF) can be shown to be
+The distribution is determined by the constants $\mu$ and $\sigma$. 
+\end{defn}
+\begin{rem}
+We write $X\sim \mathcal{N}(x; \mu, \sigma)$ as an alternative notation to say that $X$ is a normal random variable. Indeed, this is used to emphasize that the values $x$ taken by $X$ are \textbf{generated}, \textbf{simulated}, or \textbf{sampled} from a Gaussian PDF denoted by $\mathcal{N}(x; \mu, \sigma)$. 
+\end{rem}
+\begin{thm}
+Suppose $X$ is a normal random variable. Its mean is $\mathbb{E}(X) = \mu$ and its variance is $\mathbb{V}(X)=\sigma$. Furthermore, the cumulative probability function (CDF) is given by
 \begin{equation*}
 F_{X}(x) = \mathbb{P}(X \leq x) = \Phi\Big(\frac{x-\mu}{\sigma}\Big),
 \eqnum
@@ -330,70 +336,19 @@ with $\Phi(x)$ defined as
 \Phi(x) := \frac{1}{\sqrt{2\pi}}\int_{-\infty}^{x}\exp\Big(-\frac{1}{2}t^2\Big)\df t.
 \eqnum
 \end{equation*}
-We write $X\sim N(x; \mu, \sigma)$ as an alternative notation to emphasize that $X$ is a normal random variable. Indeed, this is used to emphasize that the values $x$ taken by $X$ are \textbf{generated}, \textbf{simultaed}, or \textbf{sampled} from a Gaussian PDF denoted by $N(x; \mu, \sigma)$. For the special case $\mu = 0$ and $\sigma = 1$, the associated random variable is called \textbf{standard normal} and denoted by $Z$. Its PDF and CDF simplify to
+\end{thm}
+\begin{rem}
+For the special case $\mu = 0$ and $\sigma = 1$, the associated random variable is called \textbf{standard normal} and usually denoted by $Z$. The PDF and CDF of $Z$ are given by
 \begin{align*}
-p_{Z}(z) &= \mathcal{N}(z; 0, 1) = \frac{1}{\sqrt{2\pi}}\exp\Big(-\frac{z^2}{2}\Big) \\
+p_{Z}(z) &= \mathcal{N}(z; 0, 1) = \frac{1}{\sqrt{2\pi}}\exp\Big(-\frac{z^2}{2}\Big), \\
 F_Z(z) &= \mathbb{P}(Z\leq z) = \int_{-\infty}^{z}p_Z(t)\df t = 
-\frac{1}{\sqrt{2\pi}}\int_{-\infty}^{z}\exp\Big(-\frac{1}{2}t^2\Big)\df t = \Phi(z)
+\frac{1}{\sqrt{2\pi}}\int_{-\infty}^{z}\exp\Big(-\frac{1}{2}t^2\Big)\df t = \Phi(z).
 \eqnum
 \end{align*}
-\end{defn}
-\noindent
-The following lemma makes a connection between normal and standard normal random variables.
-\begin{lem}
-Let $X\sim\mathcal{N}(x; \mu, \sigma)$ be a normal random variable. There exists a standard normal random variable $Z\sim\mathcal{N}(z; 0, 1)$ such that $X=\sigma Z + \mu$.
-\end{lem}
-\begin{prf}
-By the definition of CDF for $Z$ we have
-\begin{align*}
-F_Z(z) &= \mathbb{P}(Z \leq z) = \mathbb{P}\Big(\frac{X-\mu}{\sigma} \leq z\Big) 
-= \mathbb{P}(X \leq \sigma z + \mu) = \Phi\Big(\frac{(\sigma z + \mu)-\mu}{\sigma}\Big) = \Phi(z) .
-\end{align*}
-Taking the derivative we obtain that $F_Z'(z) = \Phi'(z) = p_Z(z) = \mathcal{N}(z; 0, 1)$.
-\end{prf}
-\begin{defn}
-A random variable $U$ is said to be \textbf{uniform} on the interval $(a, b)$ if its PDF is given by
-\begin{equation*}
-p_U(x) = \mathcal{U}(x; a, b) :=
-\begin{cases} 
-\frac{1}{b-a} & x \in [a, b] \\
-0 & x \notin [a, b]
-\end{cases}.
-\eqnum
-\end{equation*}
-Futhermore, it can easily be shown that its CDF is
-\begin{equation*}
-F_U(x) = 
-\begin{cases} 
-0 & x < a \\
-\frac{x-a}{b-a} & x \in [a, b] \\
-1 & x>b
-\end{cases}.
-\eqnum
-\end{equation*}
-For the special case, where $a=0$ and $b=1$, the PDF is simplified as
-\begin{equation*}
-p_U(x) = \mathcal{U}(x; 0, 1) :=
-\begin{cases} 
-1 & x \in [0, 1] \\
-0 & x \notin [0, 1]
-\end{cases},
-\eqnum
-\end{equation*}
-and consequenlty, the CDF becomes
-\begin{equation*}
-F_U(x) = 
-\begin{cases} 
-0 & x < 0 \\
-x & x \in [0, 1] \\
-1 & x>1
-\end{cases}.
-\eqnum
-\end{equation*}
-\end{defn}
- Computers have a pseudo random number generator which is capable of simulating the sampling from $\mathcal{U}(x; 0, 1)$. To sample from other PDFs, they employ the following important result, a proof of which is given in \cite{Gharamani2019}.
+\end{rem}
+The following theorem is crucial when we want to obtain the PDF of a random variable which is given as a function of another random variable, whose PDF is known. A proof of this thoerem is given in \cite{Gharamani2019}.
 \begin{thm}[Method of Transformations]\label{thm:MT}
-Let $X$ be a continuous random variable, $p_X$ the PDF of $X$, and $A$ the set of possible values of $X$. For the invertible function $h:A\to\mathbb{R}$, let $Y=h(X)$ be a random variable with the set of possible values $B=h(A)=\{h(a): a\in A\}$. Suppose that the inverse of $y=h(x)$ is the function $x=h^{-1}(y)$, which is differentiable for all values of $y\in B$. Then $p_Y$, the PDF of $Y$ is given by
+Let $X$ be a continuous random variable, $p_X$ the PDF of $X$, and $A$ the set of possible values of $X$. For the invertible function $h:A\to\mathbb{R}$, let $Y=h(X)$ be a random variable with the set of possible values $B=h(A)=\{h(a): a\in A\}$. Suppose that the inverse of $y=h(x)$ is the function $x=h^{-1}(y)$, which is differentiable for all values of $y\in B$. Then $p_Y$, the PDF of $Y$, is given by
 \begin{equation*}
 p_Y(y) = 
 \begin{cases}
@@ -404,12 +359,70 @@ p_X(h^{-1}(y))\left|(h^{-1})'(y)\right| & \forall y \in B  \\
 \end{equation*}
 \end{thm}
 \noindent
-An imediate and useful result of the above theorem is
+An imediate and useful result of \cref{thm:MT} is the following lemma, which makes a connection between normal and standard normal random variables.
+\begin{lem}
+Assume that $X=\sigma Z + \mu$ holds for two random variables $X$ and $Z$. Then $X\sim\mathcal{N}(x; \mu, \sigma)$ is a normal random variable if and only if $Z\sim\mathcal{N}(z; 0, 1)$  is a standard normal random variable.
+\end{lem}
+\begin{prf}
+Assume that $Z$ is a standard normal random variable. Take $X=h(Z)=\sigma Z + \mu$. Consequently, we have $A=B=\mathbb{R}$ and $h^{-1}(x)=(x-\mu)/\sigma$. Applying the method of transformations, we obtain
+\begin{equation*}
+p_X(x)=|(h^{-1})'(x)|p_Z(h^{-1}(x))
+=\frac{1}{\sigma}\frac{1}{\sqrt{2\pi}}\exp\Big(-\frac{1}{2}\Big(\frac{x-\mu}{\sigma}\Big)^2\Big)
+=\frac{1}{\sqrt{2\pi\sigma^2}}\exp\Big(-\frac{(x-\mu)^2}{2\sigma^2}\Big),
+\end{equation*}
+which verfies that  $X\sim\mathcal{N}(x; \mu, \sigma)$. The proof for the other direction is completely similar.
+\end{prf}
+\begin{defn}
+A random variable $U$ is said to be \textbf{uniform} on the interval $(a, b)$ if its PDF is given by
+\begin{equation*}
+p_U(x) = \mathcal{U}(x; a, b) :=
+\begin{cases} 
+\frac{1}{b-a} & x \in (a, b) \\
+0 & x \notin (a, b)
+\end{cases}.
+\eqnum
+\end{equation*}
+The distribution is determined by the constants $a$ and $b$. 
+\end{defn}
+\begin{thm}
+Suppose $U$ is a uniform random variable. Its mean is $\mathbb{E}(U) = \frac{1}{2}(a+b)$ and its variance is $\mathbb{V}(U)=\frac{1}{12}(b-a)^2$. Furthermore, its CDF is given by
+\begin{equation*}
+F_U(x) = 
+\begin{cases} 
+0 & x < a \\
+\frac{x-a}{b-a} & x \in (a, b) \\
+1 & x > b
+\end{cases}.
+\eqnum
+\end{equation*}
+\end{thm}
+\begin{rem}
+For the special case, where $a=0$ and $b=1$, the PDF is simplified as
+\begin{equation*}
+p_U(x) = \mathcal{U}(x; 0, 1) :=
+\begin{cases} 
+1 & x \in (0, 1) \\
+0 & x \notin (0, 1)
+\end{cases},
+\eqnum
+\end{equation*}
+and consequenlty, the CDF becomes
+\begin{equation*}
+F_U(x) = 
+\begin{cases} 
+0 & x \leq 0 \\
+x & x \in (0, 1) \\
+1 & x \ge 1
+\end{cases}.
+\eqnum
+\end{equation*}
+\end{rem}
+ Computers have a pseudo random number generator which is capable of simulating the sampling from $\mathcal{U}(x; 0, 1)$. To sample from other PDFs, they employ the following important result, which is again a result of the method of tranformations.
 \begin{cor}[Sampling]\label{thm:sample}
-Let $U$ be a continuous random variable with PDF $\mathcal{U}(u; 0, 1)$ and let $Y=F_Z^{-1}(U)$ be another random variable $Y$, where $F_Z:\mathbb{R}\to[0,1]$ is the CDF of an arbitrary random variable $Z$ that we want to sample. Assuming that $F_Z^{-1}$ is differentable on $(0, 1)$ and strictly increasing, $Y$ and $Z$ have the same PDF.
+Let $U\sim\mathcal{U}(u; 0, 1)$ be a uniform random variable  and let $Y=F_Z^{-1}(U)$ be another random variable $Y$, where $F_Z$ is the CDF of an arbitrary random variable $Z$ that we want to sample. If $F_Z$ is differentable on $\mathbb{R}$ and strictly increasing, then $Y$ and $Z$ have the same PDF.
 \end{cor}
 \begin{prf}
-According to \cref{thm:MT}, set $X=U$, where $U\sim\mathcal{U}(x; 0, 1)$, and $h = F_Z^{-1}$ with $F_Z:\mathbb{R} \to [0, 1]$ being the CDF of a random variable $Z$ that we want to sample. Noting that $A=[0, 1]$ and $B=\mathbb{R}$,  $Y=F_Z^{-1}(U)$ is a random variable with the following CDF
+Take $h=F_Z^{-1}$ so that $Y=h(U) = F_Z^{-1}(U)$ with $F_Z:\mathbb{R} \to [0, 1]$ being the CDF of a random variable $Z$ that we want to sample. Also, note that $A=[0, 1]$, $B=\mathbb{R}$ and $F_Z(\mathbb{R})=(0, 1)$ since $F_Z$ is strictly increasing. Applying the method of transformations gives
 \begin{equation*}
 p_Y(y) = p_U(F_Z(y))\left|F_Z'(y)\right|=1\cdot\left|F_Z'(y)\right|= F_Z'(y)=p_Z(y),  \qquad \forall y \in \mathbb{R},
 \eqnum
@@ -417,7 +430,9 @@ p_Y(y) = p_U(F_Z(y))\left|F_Z'(y)\right|=1\cdot\left|F_Z'(y)\right|= F_Z'(y)=p_Z
 proving that $Y$ and $Z$ have the same PDF.
 \end{prf}
 \newline
-This result is so crucial and illustrates that if we are capable of sampling from $\mathcal{U}(x; 0, 1)$, then we can sample from any other distribution with a differentiable strictly increasing CDF. In particular, if you set $F_Z(y) = \Phi((y-\mu)/\sigma)$, which satisfies the aforementioned requirements, then you can sample from $\mathcal{N}(x; \mu, \sigma^2)$. For this purpose, draw a sample $x$ from $\mathcal{U}(x; 0, 1)$ and then calculate $y=F_Z^{-1}(x)$.
+\begin{rem}
+This result is crucial and illustrates that if we are capable of sampling from $\mathcal{U}(x; 0, 1)$, then we can sample from any other distribution with a differentiable strictly increasing CDF. In particular, if you set $F_Z(z) = \Phi((z-\mu)/\sigma)$, which satisfies the aforementioned requirements, then you can sample from $Z\sim\mathcal{N}(z; \mu, \sigma^2)$. For this purpose, draw a sample $u$ from $U\sim\mathcal{U}(u; 0, 1)$ and then calculate $z=F_Z^{-1}(u)$. This is how a computer samples a normal random variable.
+\end{rem}
 
 \subsection{Multivariate Gaussian Distribution}
 The multivariate Gaussian or Normal (MVN) distribution is the most widely used joint PDF for continuous random variables. In this subsection, we address three main operations of MVNs, including sampling, conditioning and marginalization.
