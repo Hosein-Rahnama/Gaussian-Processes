@@ -43,7 +43,7 @@
 \newcommand{\overbar}[1]{\mkern 1.5mu\overline{\mkern-1.5mu#1\mkern-1.5mu}\mkern 1.5mu}
 \algnewcommand{\LineComment}[1]{\State {\color{ForestGreen} \(\triangleright\) #1}}
 
-\DeclareMathOperator{\cov}{cov}
+\DeclareMathOperator{\cov}{\mathbb{CV}}
 \DeclareMathOperator{\gp}{GP}
 \DeclareMathOperator{\tr}{tr}
 \DeclareMathOperator{\df}{d\!}
@@ -120,35 +120,40 @@ Given the Cholesky decomposition, solving the SPD linear system $\mathsf{A}\math
 
 \begin{algorithm}[t]
 \caption{Cholesky Decomposition}\label{alg:chol}
-\hspace*{\algorithmicindent} {\scshape Input}: $\mathsf{A}$\\
-\hspace*{\algorithmicindent} {\scshape Output}: $\mathsf{L}$
+\hspace*{\algorithmicindent} {\scshape Input}: $\mathsf{A}$ \\
+\hspace*{\algorithmicindent} {\scshape Output}: $\mathsf{L}$ \\
+\hspace*{\algorithmicindent} {\scshape Cholesky-Decomposition}($\mathsf{A}$):
 \begin{algorithmic}[1]
-\LineComment{Initialize the first column of $\mathsf{L}$ with zeros.}
+\LineComment{Initialize $\mathsf{L}$ with zeros.}
 \For{$j=1$ \textbf{to} $n$}
-	\State $l_{j1} = 0$;
+    \For{$k=1$ \textbf{to} $n$}
+	   \State $l_{jk} = 0$
+      \EndFor
 \EndFor
+\LineComment{Compute columns of $\mathsf{L}$ inductively.}
 \For{$k=1$ \textbf{to} $n$}
     \LineComment{Calculate $l_{kk}$.}
-	\State sum = $0$;
-	\For{$i=1$ \textbf{to} $k-1$}
-		\State sum = sum + $l_{ki}l_{ki}$;
-	\EndFor
-	\State $l_{kk} = a_{kk}- \text{sum}$;
-	\LineComment{Check for positive definitness.}
-	\If{$l_{kk} \leq 0$}
-		\State print $A$ is not positive definite;
-		\State return;
+   	\State sum = $0$
+   	\For{$i=1$ \textbf{to} $k-1$}
+   		\State sum = sum + $l_{ki}l_{ki}$
+   	\EndFor
+   	\State $l_{kk} = a_{kk}- \text{sum}$
+   	\LineComment{Check for positive definitness.}
+   	\If{$l_{kk} \leq 0$}
+   		\State print $A$ is not positive definite;
+   		\State \Return
     \EndIf
-	\State $l_{kk} = \sqrt{l_{kk}}$;
+   	\State $l_{kk} = \sqrt{l_{kk}}$;
     \LineComment{Calculate $l_{jk}$ for $j>k$.}
     \For{$j=k+1$ \textbf{to} $n$}
-    	\State sum = $0$;
-    	\For{$i=1$ \textbf{to} $k-1$}
-    		\State sum = sum + $l_{ki}l_{ji}$;
-    	\EndFor
-    	\State $l_{jk}=(a_{jk}-\text{sum})/l_{kk}$;
+       	\State sum = $0$
+       	\For{$i=1$ \textbf{to} $k-1$}
+       		\State sum = sum + $l_{ki}l_{ji}$
+       	\EndFor
+       	\State $l_{jk}=(a_{jk}-\text{sum})/l_{kk}$
     \EndFor
 \EndFor
+\State \Return $\mathsf{L}$
 \end{algorithmic}
 \end{algorithm}
 
@@ -447,7 +452,7 @@ p_{\mathbf{X}}(\mathbf{x}) = \mathcal{N}(\mathbf{x};\boldsymbol{\mu},\mathsf{\Si
 where $\mathbf{x}, \boldsymbol{\mu} \in \mathbb{R}^m$ and $\mathsf{\Sigma} \in \mathbb{R}^{m,m}$ is SPD. The distribution is determined by the vector $\boldsymbol{\mu}$ and matrix $\mathsf{\Sigma}$. 
 \end{defn}
 \begin{thm}
-If $\mathbf{X}$ is a normal random vector, then its \textbf{mean vector} is $\mathbb{E}(\mathbf{X})=\boldsymbol{\mu}$. Furthermore, the \textbf{covariance matrix} is $\mathbb{CV}(\mathbf{X}, \mathbf{X})=\mathbb{V}(\mathbf{X})=\mathsf{\Sigma}$.
+If $\mathbf{X}$ is a normal random vector, then its \textbf{mean vector} is $\mathbb{E}(\mathbf{X})=\boldsymbol{\mu}$. Furthermore, the \textbf{covariance matrix} is $\cov(\mathbf{X}, \mathbf{X})=\mathbb{V}(\mathbf{X})=\mathsf{\Sigma}$.
 \end{thm}
 \begin{rem}
 The inverse of the covariance matrix $\mathsf{\Lambda} = \mathsf{\Sigma}^{-1}$ is called the \textbf{precision} matrix.
@@ -565,61 +570,74 @@ showing that in this case the PDF becomes the products of marginal PDFs. The las
 \end{rem}
 
 \section{Gaussian Process}
- A GP is a special stochastic process (SP). So before defining what a GP is, we start by defining an SP.
+ A Gaussian Process (GP) is a special Stochastic Process (SP). Before defining what a GP is, we start by defining an SP.
  \begin{defn}
- A stochastic process is as collection of random variables. This collection can be countable or uncountable. In methematical notation, we write $\{X_{\alpha}\}_{\alpha\in \mathcal{X}}$ with $\mathcal{X}$ being an \textbf{index set} that labels the random variables as $X_{\alpha}$. The choice of the index set is arbitrary. Some choices that usually appear in applications are $\mathcal{X}\subseteq\mathbb{N}$ and $\mathcal{X}\subseteq\mathbb{R}^{m}$ with $m \ge 1$. Stochastic processes are used for modeling states of random evolution of a system with each random variable $X_{\alpha}$ corresponding to a specific random state labeled by $\alpha$.
+ A stochastic process is as collection of random variables. This collection can be countable or uncountable. In methematical notation, we write $\{X_{\alpha}|\,\alpha\in \mathcal{X}\}$ with $\mathcal{X}$ being an \textbf{index set} that labels the random variables as $X_{\alpha}$.
  \end{defn}
+ \begin{rem}
+The choice of the index set is arbitrary. Some choices that usually appear in applications are $\mathcal{X}\subseteq\mathbb{N}$ and $\mathcal{X}\subseteq\mathbb{R}^{m}$ with $m \ge 1$. Stochastic processes are used for modeling states of random evolution of a system with each random variable $X_{\alpha}$ corresponding to a specific random state labeled by $\alpha$.
+ \end{rem}
  \begin{exmp}
- A famous example of an SP is the discrete-time Markov chain. It is defined as the set of random variables $\{X_t\}_{t\in\mathbb{N}}$ with the \textbf{Markov property}, namely that the probability of moving to the next state depends only on the present state and not on the previous states formulated as below
+ A famous example of an SP is the discrete-time Markov chain. It is defined as the set of random variables $\{X_t|\,t\in\mathbb{N}\}$ with the possible values of $X_i$ forming a countable set $S$ called the \textbf{state space} of the chain. These random variables possess the \textbf{Markov property}, namely that the probability of moving to the next state depends only on the present state and not on the previous states, which is formulated as below
  \begin{equation*}
- \mathbb{P}(X_{n+1} = x_{n+1} | X_{n} = x_{n},\dots,X_{1} = x_{1}) =  \mathbb{P}(X_{n+1} = x_{n+1}|X_{n} = x_{n}).
+ \mathbb{P}(X_{n+1} = x_{n+1} | X_{n} = x_{n},\dots,X_{1} = x_{1}) =  \mathbb{P}(X_{n+1} = x_{n+1}|X_{n} = x_{n}),
  \end{equation*}
- The possible values of $X_i$ form a countable set $S$ called the \textbf{state space} of the chain. As a concrete example, the number of daily car accidents from a origin in time can be modeled as a Markov chain. Indeed, we don't expect the number of tommorow's car accidents to depend on the number of car accidents on yesterday or one week ago or even today. In other words, the future only depends on the present and not the past.
+ where you can interpret $t=n$ as the present time. As a concrete example, the number of daily car accidents from an origin in time can be modeled as a Markov chain. Indeed, we don't expect the number of tommorow's car accidents to depend on the number of car accidents on yesterday or one week ago or even today. In other words, the future only depends on the present and not the past.
  \end{exmp}
  
-\subsection{What is a GP?}
-We are now ready to introduce a Gaussian Process.
+\subsection{What is a Gaussian Process?}
+We are now ready to introduce a GP.
 \begin{defn}
-A Gaussian process is a collection of random variables $\mathscr{C} = \{f(\mathbf{x})\}_{\mathbf{x}\in\mathcal{X}}$, any finite number of which have a joint Gaussian PDF. The process is determined by its \textbf{mean function} $\mu: \mathcal{X} \to \mathbb{R}$ and \textbf{kernel} or \textbf{covariance function} $\kappa: \mathcal{X} \times\mathcal{X} \to \mathbb{R}$ to specify the expected value and covariance of the random variables in the set $\mathscr{C}$ as follows
+A Gaussian process is a collection of random variables $\mathscr{C} = \{f(\mathbf{x})|\,\mathbf{x}\in\mathcal{X}\}$, any finite number of which have a joint Gaussian PDF. The process is determined by its \textbf{mean function} $\mu: \mathcal{X} \to \mathbb{R}$ and \textbf{kernel} or \textbf{covariance function} $\kappa: \mathcal{X} \times\mathcal{X} \to \mathbb{R}$ to specify the expected value and covariance of the random variables in the set $\mathscr{C}$ as follows
 \begin{alignat*}{2}
 \mu(\mathbf{x}) &= \mathbb{E}(f(\mathbf{x})), && \forall \mathbf{x}\in\mathcal{X}, \\
 \kappa(\mathbf{x},\mathbf{x}') &= \mathbb{E}\big((f(\mathbf{x})-\mu(\mathbf{x}))(f(\mathbf{x}')-\mu(\mathbf{x}')\big) = \cov(f(\mathbf{x}), f(\mathbf{x}')), \qquad && \forall \mathbf{x},\, \mathbf{x}'\in\mathcal{X}.
 \eqnum
 \label{eq:GP:def}
 \end{alignat*}
-We use the following notation to emphasize that the random variable $f(\mathbf{x})$ is taken from a GP
+Usually, the collection $\mathscr{C}$ is denoted by $\gp(\mu(\mathbf{x}), \kappa(\mathbf{x},\mathbf{x}'))$, so we write
 \begin{equation*}
-f(\mathbf{x}) \leftarrow \gp(\mu(\mathbf{x}), \kappa(\mathbf{x},\mathbf{x}')),
+f(\mathbf{x}) \in \gp(\mu(\mathbf{x}), \kappa(\mathbf{x},\mathbf{x}'))
 \eqnum
 \end{equation*}
-and by definition its PDF will be
+to emphasize that $f(\mathbf{x})$ comes from a GP and by definition its PDF will be
 \begin{equation*}
-f(\mathbf{x}) \sim \mathcal{N}\big(t; \mu(\mathbf{x}), \kappa(f(\mathbf{x}), f(\mathbf{x}))\big).
+p_{f(\mathbf{x})}(t) = \mathcal{N}\big(t; \mu(\mathbf{x}), \kappa(f(\mathbf{x}), f(\mathbf{x}))\big).
 \eqnum
 \end{equation*}
 \end{defn}
-\begin{exmp}[Consistency Requirement]
-Suppose that we select $n$ random variables from a GP $\mathscr{C} = \{f(\mathbf{x})\}_{\mathbf{x}\in\mathcal{X}}$ and for \textit{notational convenience} we label them as $Y_i=f(\mathbf{x}_i)$ with $i=1,2,\dots,n$. According to the definition of the GP, we know that $\mathbf{Y}\sim\mathcal{N}(\mathbf{y};\boldsymbol{\mu}, \mathsf{\Sigma})$ with
+\begin{rem}
+Suppose that we select $n$ random variables from a $\gp(\mu(\mathbf{x}), \kappa(\mathbf{x},\mathbf{x}'))$ and for \textit{notational convenience} we label them as $Y_i=f(\mathbf{x}_i)$ with $i=1,2,\dots,n$. According to the definition of GP, we know that $p_{\mathbf{Y}}(\mathbf{y}) =\mathcal{N}(\mathbf{y};\boldsymbol{\mu}, \mathsf{\Sigma})$ with
 \begin{alignat*}{2}
 \mu_i &= \mathbb{E}(Y_i) =\mathbb{E}(f(\mathbf{x}_i)) = \mu(\mathbf{x}_i), && i=1,\dots, n\\
 \sigma_{ij} &= \cov(Y_i, Y_j) = \cov(f(\mathbf{x}_i), f(\mathbf{x}_j)) = \kappa(\mathbf{x}_i, \mathbf{x}_j), \qquad && i=1,\dots, n, \qquad j = 1\dots,n,
 \eqnum
 \label{eq:GP:consis}
 \end{alignat*}
-where $\boldsymbol{\mu}=(\mu_i)$ and $\mathsf{\Sigma}=[\sigma_{ij}]$. So the mean vector and the covariance matrix of the joint PDF $\mathcal{N}(\mathbf{y};\boldsymbol{\mu}, \mathsf{\Sigma})$ are determined by the mean function and covariance function of the GP. Now partition the random vector $\mathbf{Y}$ as $(\mathbf{Y}_1, \mathbf{Y}_2)$ with $\mathbf{Y}_1=\mathbf{Y}_{1:r}$ and $\mathbf{Y}_2=\mathbf{Y}_{r+1:n}$. From the marginalization property of MVNs in \cref{thm:MT:MV} we know that $\mathbf{Y}_1 \sim \mathcal{N}(\mathbf{y}_1; \boldsymbol{\mu}_1, \mathsf{\Sigma}_{11})$ and $\mathbf{Y}_2 \sim \mathcal{N}(\mathbf{y}_2; \boldsymbol{\mu}_2, \mathsf{\Sigma}_{22})$, where $\boldsymbol{\mu}_1 = \boldsymbol{\mu}_{1:r}$, $\mathsf{\Sigma}_{11}=\mathsf{\Sigma}_{1:r,\,1:r}$ and $\boldsymbol{\mu}_2 = \boldsymbol{\mu}_{r+1:n}$, $\mathsf{\Sigma}_{22}=\mathsf{\Sigma}_{r+1:n,\,r+1:n}$. The natural question to ask is that do we get the same result if we had initially chosen $\mathbf{Y}_1$ or $\mathbf{Y}_2$ from the GP. The answer is YES, since by \cref{eq:GP:consis} we observe that everything remains the same except for the range of indices $i$ and $j$. In other words, examination of a larger set of variables does not change the distribution of the smaller set. This is well known as the \textbf{consistency requirement}. To recap, a GP is well-defined thanks to the marginalization property of MVNs. Note that the consistency requirement would be lost if we had used a precision function to determine the precision matrix of a finite number of selected random variables from the collection $\mathscr{C}$. In that case, the definition is invalid since we could get two different PDFs for the same random vector because by the matrix inversion lemma we know that $\mathsf{\Lambda}_{11} = (\mathsf{\Sigma}_{11} - \mathsf{\Sigma}_{12} \mathsf{\Sigma}_{22}^{-1} \mathsf{\Sigma}_{21})^{-1}$, implying that the examination of a larger set does influence the distribution of the smaller set.
-\end{exmp}
+where $[\boldsymbol{\mu}]_i=\mu_i$ and $[\mathsf{\Sigma}]_{ij}=\sigma_{ij}$. So the mean vector and the covariance matrix of the joint PDF $\mathcal{N}(\mathbf{y};\boldsymbol{\mu}, \mathsf{\Sigma})$ are determined by the mean function and covariance function of the GP. Now partition the random vector $\mathbf{Y}$ as $(\mathbf{Y}_1, \mathbf{Y}_2)$ with $\mathbf{Y}_1=[\mathbf{Y}]_{1:r}$ and $\mathbf{Y}_2=[\mathbf{Y}]_{r+1:n}$. From the marginalization property of MVNs in \cref{thm:MT:MV} we know that $p_{\mathbf{Y}_1}(\mathbf{y}_1) = \mathcal{N}(\mathbf{y}_1; \boldsymbol{\mu}_1, \mathsf{\Sigma}_{11})$ and $p_{\mathbf{Y}_2}(\mathbf{y}_2) = \mathcal{N}(\mathbf{y}_2; \boldsymbol{\mu}_2, \mathsf{\Sigma}_{22})$, where $\boldsymbol{\mu}_1 = [\boldsymbol{\mu}]_{1:r}$, $\mathsf{\Sigma}_{11}=[\mathsf{\Sigma}]_{1:r,\,1:r}$ and $\boldsymbol{\mu}_2 = [\boldsymbol{\mu}]_{r+1:n}$, $\mathsf{\Sigma}_{22}=[\mathsf{\Sigma}]_{r+1:n,\,r+1:n}$. The natural question to ask is that do we get the same PDFs if we had initially chosen $\mathbf{Y}_1$ or $\mathbf{Y}_2$ from the GP. The answer is YES, since by \cref{eq:GP:consis} we observe that everything remains the same except for the range of indices $i$ and $j$. In other words, examination of a larger set of random variables does not change the distribution of the smaller set. This is well known as the \textbf{consistency requirement}. To recap, a GP is well-defined thanks to the marginalization property of MVNs. 
+\end{rem}
+\begin{rem}
+Note that the consistency requirement would be lost if we had used a precision function to determine the precision matrix of a finite number of selected random variables from the collection $\mathscr{C}$. In that case, the definition is invalid since we could get two different PDFs for the same random vector. Let us repeat the previous experiment. Choose $n$ random variables constructing the random vector $\mathbf{Y}$. The precision matrix $\Lambda$ for $p_{\mathbf{Y}}$ is obtained via the precision function. By the matrix inversion lemma, $\Lambda$ can be inverted to get $\mathsf{\Sigma}_{11} = (\mathsf{\Lambda}_{11} - \mathsf{\Lambda}_{12} \mathsf{\Lambda}_{22}^{-1} \mathsf{\Lambda}_{21})^{-1}$. By the marginalization property of Gaussians, $\Sigma_{11}$ should be the covariance matrix for $p_{\mathbf{Y}_1}$, so its inverse $\Sigma_{11}^{-1}$ will be its precision matrix. If we had chosen $\mathbf{Y}_1$ from the beginning, its precision matrix $\bar{\Lambda}$ would be directly obtained via the percision function. However, the equality $\bar{\Lambda}=\mathsf{\Lambda}_{11} - \mathsf{\Lambda}_{12} \mathsf{\Lambda}_{22}^{-1} \mathsf{\Lambda}_{21}$ does not necessarily hold. In other words, this implies that the examination of a larger set of random variables does influence the distribution of the smaller set.
+\end{rem}
 \begin{exmp}
 If the index set $\mathcal{X}$ is finite, e.g. $\mathcal{X}=\{1,2,\dots,n\}$, then the GP is reduced to an MVN distribution. So GP is a generalization of MVN distribution to infinitely many random variables.
 \end{exmp}
 
 \subsection{Probabilistic View of Regression}
 A typtical regression problem has the following elements.
-\begin{defn}[Inputs, Outputs, Dataset]
-In the regression problem, we have a training set $\mathcal{D}$ of $n$ observations, $\mathcal{D}=\{(\mathbf{x}_i, y_i)|i=1,\dots,n\}$, where $\mathbf{x}\in\mathbb{R}^{d}$ denotes an \text{input} vector and $y\in\mathbb{R}$ denotes the output or \textbf{target} (dependent) variable. The column vector inputs $\mathbf{x}_i$ for all $n$ cases are aggregated in the \textbf{design matrix} $\mathsf{X}\in \mathbb{R}^{n\times d}$ so its rows are $\mathsf{X}_{i,.}=\mathbf{x}_i^{\top}$. The targets are collected in the vector $\mathbf{y}\in\mathbb{R}^n$. It is also customary to write $\mathcal{D}=(\mathsf{X}, \mathbf{y})$.
+\begin{defn}[Training Data]
+In the regression problem, we have a training set $\mathcal{D}_1$ of $n$ observations, $\mathcal{D}_1=\{(\mathbf{x}_{1,i}, y_{1,i})|i=1,\dots,n\}$, where $\mathbf{x}_{1,i}\in\mathbb{R}^{d}$ denotes an \text{input} vector and $y_{1,i}\in\mathbb{R}$ denotes the output, target or dependent variable. The inputs are aggregated in the \textbf{design matrix} $\mathsf{X}_1\in \mathbb{R}^{n\times d}$ so its rows are $[\mathsf{X}_1]_{i,1:n}=\mathbf{x}_{1,i}^{\top}$. The targets are collected in the vector $\mathbf{y}_1\in\mathbb{R}^n$. It is also customary to write $\mathcal{D}_1=(\mathsf{X}_1, \mathbf{y}_1)$.
 \end{defn}
-We shall take a probabilistic approach to solve the regression problem. We assume that the \textbf{observed} targets $\mathbf{y}_1$ and \textbf{unobserved} targets $\mathbf{y}_2$ are samples drawn from a set of random variables belonging to a GP, while the inputs are exactly determined and do not have any source of randomness. Now, the question is that if we look at new input points $\mathbf{x}_2$, what the conditional PDF $p_{\mathbf{Y}_2|\mathbf{Y}_1}(\mathbf{y}_2|\mathbf{y}_1)$ is. More intuitively, we are interested in knowing the odds of seeing the target values $\mathbf{y}_2$ at new input points $\mathbf{x}_1$, given that we have seen target values $\mathbf{y}_1$ at input pionts $\mathbf{x}_1$. Note that the subscripts $1$ and $2$ refer to the \textbf{training} and \textbf{test} data.
-
-To take a step futher, we should present our \textbf{prior believes} about the GP that generates the target values. Consequently, we should determine the associated mean function and kernel. For simplicity in our calculations, let us assume that the mean function of the GP is zero, so $\mu(\mathbf{x})=0$ for all $\mathbf{x}\in\mathcal{X}$. Even with this simplifying assumption, we shall see that the model's predictive power is good enough. For a more general mean function formulation consult \cite[Section 2.7]{Rasmussen2006}. Note that the index set $\mathcal{X}\subseteq\mathbb{R}^d$ is now just the input domain. The only thing that remains to specify is the kernel function.
+\begin{defn}[Test Data]
+In the regression problem, we have a test set $\mathcal{D}_2=\{(\mathbf{x}_{2,i}, y_{2,i})|i=1,\dots,m\}$, where $\mathbf{x}_{2,i}\in\mathbb{R}^{d}$ denotes a \text{test} point and $y_{2,i}\in\mathbb{R}$ denotes the predicted output by our model at $\mathbf{x}_{2,i}$. The test points are aggregated in $\mathsf{X}_2\in \mathbb{R}^{n\times d}$ so its rows are $[\mathsf{X}_2]_{i,1:n}=\mathbf{x}_{2,i}^{\top}$. The predicted outputs are collected in the vector $\mathbf{y}_2\in\mathbb{R}^n$. It is also customary to write $\mathcal{D}_2=(\mathsf{X}_2, \mathbf{y}_2)$.
+\end{defn}
+\begin{rem}
+Note that the subscripts $1$ and $2$ in the previous definitions refer to the training and test data.
+\end{rem}
+We shall take a probabilistic approach to solve the regression problem. We assume that the \textbf{observed} targets $\mathbf{y}_1$ and \textbf{unobserved} targets $\mathbf{y}_2$ are samples drawn from a set of random variables belonging to a GP with an index set $\mathcal{X}=\mathbb{R}^d$. The inputs are exactly determined and do not have any source of randomness. Now, the question is that if we look at new input points $\mathbf{x}_2$, what the conditional PDF $p_{\mathbf{Y}_2|\mathbf{Y}_1}(\mathbf{y}_2|\mathbf{y}_1)$ is. More intuitively, we are interested in knowing the odds of seeing the target values $\mathbf{y}_2$ at new input points $\mathsf{X}_2$, given that we have seen target values $\mathbf{y}_1$ at input pionts $\mathsf{X}_1$.  To take a step futher, we should present our \textbf{prior believes} about the GP that generates the target values. Consequently, we should determine the associated mean function and kernel. 
+\begin{rem}[Zero Mean Assumption]
+For simplicity in our calculations, let us assume that the mean function of the GP is zero, so $\mu(\mathbf{x})=0$ for all $\mathbf{x}\in\mathcal{X}$. Even with this simplifying assumption, we shall see that the model's predictive power is good enough. For a more general mean function formulation consult \cite[Section 2.7]{Rasmussen2006}. The only thing that remains to specify is the kernel function.
+\end{rem}
 \begin{defn}
 The Radial Basis Function (RBF) or the Squared Exponential (SE) kernel is defined as
 \begin{equation*}
@@ -627,11 +645,22 @@ The Radial Basis Function (RBF) or the Squared Exponential (SE) kernel is define
 \eqnum
 \label{eq:RBF}
 \end{equation*}
-where $\sigma_y$ is a \textbf{hyperparameter} representing the amplitude of the covariance and $\ell$ is also a hyperparameter known as the length-scale. The RBF kernel encodes the intuition that if $\mathbf{x}_i$ and $\mathbf{x}_j$ are close to each other in the input space $\mathcal{X}$, then their correponding target values $y_i$ and $y_j$ are samples drawn from two highly correlated random variables $Y_i=f(\mathbf{x}_i)$ and $Y_j=f(\mathbf{x}_j)$. As the distance between the inputs increases, the correlation between $Y_i$ and $Y_j$ decreases exponentially. Pay attention to the fact that the covariance between \textit{outputs} is written as a function of \textit{inputs}.
+where $\sigma_y$ is a \textbf{hyperparameter} representing the amplitude of the covariance and $\ell$ is also a hyperparameter known as the length-scale.
 \end{defn}
-There are a wide range of other kernels that can be used. However, it should be noted that the kernel must have specific properties to guarantee producing PD covariance matrices. It can be proved that convariance matrices produced by the RBF kernel are PD. For more details on the kernels refer to \cite[Chapter 4]{Rasmussen2006}.
+\begin{rem}
+The RBF kernel encodes the intuition that if $\mathbf{x}_i$ and $\mathbf{x}_j$ are close to each other in the input space $\mathcal{X}$, then their correponding target values $y_i$ and $y_j$ are samples drawn from two highly correlated random variables $Y_i=f(\mathbf{x}_i)$ and $Y_j=f(\mathbf{x}_j)$. As the distance between the inputs increases, the correlation between $Y_i$ and $Y_j$ decreases exponentially. Pay attention to the fact that the covariance between \textit{outputs} is written as a function of \textit{inputs}.
+\end{rem}
+There are a wide range of other kernels that can be used. However, it should be noted that the kernel must have specific properties to guarantee producing SPD covariance matrices. It can be proved that convariance matrices produced by the RBF kernel are SPD. For more details on the kernels refer to \cite[Chapter 4]{Rasmussen2006}.
 
 \subsubsection{Noise-Free Prediction}
+An intuitive way to think about GPs is that they are distributions over functions. To see this, think of function values as vectors of infinite length. In detail, we choose \textit{arbitrary} $m$ number of input points $\mathsf{X}_2 \in \mathbb{R}^{m\times d}$ and write out the corresponding covariance matrix $\mathsf{\Sigma_{22}}$ using Eqs. \eqref{eq:GP:consis} and \eqref{eq:RBF} elementwise. Next, we draw a random vector $\mathbf{y}_{2}$ from the following PDF
+\begin{equation*}
+p_{\mathbf{Y}_{2}}(\mathbf{y}_{2}) = \mathcal{N}(\mathbf{y}_{2}; \mathbf{0}, \mathsf{\Sigma_{22}}).
+\eqnum
+\label{eq:GP:prior}
+\end{equation*}
+Indeed, this is a sample drawn from the \textbf{prior distribution} as we have not used our knowledge of the observed targets. The method of sampling from an MVN distribution was described in \cref{exmp:sample}. You can visit \cite{Gortler2019} for a nice visualization of sampling from prior distributions with different kernels and hyperparameters. 
+
 Now, based on our assumption that the target values are samples drawn from random variables that come from a GP, we can write the following
 \begin{equation*}
 p_{\mathbf{Y}_{1}, \mathbf{Y}_{2}}(\mathbf{y}_{1}, \mathbf{y}_{2}) =
@@ -641,28 +670,18 @@ p_{\mathbf{Y}_{1}, \mathbf{Y}_{2}}(\mathbf{y}_{1}, \mathbf{y}_{2}) =
 \mathbf{y}_2
 \end{bmatrix} ;
 \begin{bmatrix}
-\mathbf{0} \\
-\mathbf{0}
+\mathbf{0}_n \\
+\mathbf{0}_m
 \end{bmatrix} ,
 \begin{bmatrix}
 \mathsf{\Sigma}_{11} & \mathsf{\Sigma}_{12} \\
 \mathsf{\Sigma}_{21} & \mathsf{\Sigma}_{22} 
 \end{bmatrix}
-\right) \sim
-\begin{bmatrix}
-\mathbf{Y}_1 \\
-\mathbf{Y}_2
-\end{bmatrix}
+\right) \cdot
 \eqnum
 \label{eq:GP:joint}
 \end{equation*}
-An intuitive way to think about GPs is that they are distributions over functions. To see this, think of function values as vectors of infinite length. In detail, we choose an \textit{arbitrary} $m$ number of input points $\mathsf{X}_2 \in \mathbb{R}^{m\times d}$ with $[\mathsf{X}_2]_{i,.}=\mathbf{x}_{2,i}^{\top}$ and write out the corresponding covariance matrix using eqs. \eqref{eq:GP:consis} and \eqref{eq:RBF} elementwise. Next, we generate a random Gaussian vector $\mathbf{y}_{2}$ with this covariance matrix denoted by $\mathsf{\Sigma_{22}}$ as follows
-\begin{equation*}
-p_{\mathbf{Y}_{2}}(\mathbf{y}_{2}) = \mathcal{N}(\mathbf{y}_{2}; \mathbf{0}, \mathsf{\Sigma_{22}}) \sim \mathbf{Y}_{2}.
-\eqnum
-\label{eq:GP:prior}
-\end{equation*}
-Indeed, this is a sample drawn from the \textbf{prior distribution} as we have not used our knowledge of the observed targets. The method of sampling from an MVN was described in \cref{exmp:sample}. You can visit \cite{Gortler2019} for nice visualization of sampling from prior distributions with different kernels and hyperparameters. Returning to our original question, we use \cref{thm:MVN:MC} to compute $p_{\mathbf{Y}_2|\mathbf{Y}_1}(\mathbf{y}_2|\mathbf{y}_1)$ as below
+To answer our original question, we use \cref{thm:MVN:MC} to compute $p_{\mathbf{Y}_2|\mathbf{Y}_1}(\mathbf{y}_2|\mathbf{y}_1)$ as below
 \begin{equation*}
 p_{\mathbf{Y}_2|\mathbf{Y}_1}(\mathbf{y}_2|\mathbf{y}_1) = 
 \mathcal{N}(\mathbf{y}_2;\mathsf{\Sigma}_{21}\mathsf{\Sigma}_{11}^{-1}\mathbf{y}_1, \mathsf{\Sigma}_{22} - 
@@ -670,7 +689,7 @@ p_{\mathbf{Y}_2|\mathbf{Y}_1}(\mathbf{y}_2|\mathbf{y}_1) =
 \eqnum
 \label{eq:GP:posterior}
 \end{equation*}
-which is called the \textbf{noise-free} predictive or \textbf{posterior} distribution. Note that we have interchanged the role of subscripts $1$ and $2$ in using \cref{thm:MVN:MC}. The \textit{prior} and \text{posterior} terminology come from the well-known \textbf{Baysian Inference} since by the Bayes rule we know that
+which is called the \textbf{noise-free} predictive or \textbf{posterior} distribution.  The \textit{prior} and \textit{posterior} terminology come from the well-known \textbf{Bayes rule}
 \begin{equation*}
 p_{\mathbf{Y}_2|\mathbf{Y}_1}(\mathbf{y}_2|\mathbf{y}_1) =
 \frac{p_{\mathbf{Y}_2,\mathbf{Y}_1}(\mathbf{y}_2,\mathbf{y}_1)}{p_{\mathbf{Y}_1}(\mathbf{y}_1)} = 
@@ -682,11 +701,11 @@ which is usually seen as
 \text{posterior} = \frac{\text{likelihood} \times \text{prior}}{\text{marginal likelihood or evidence}},
 \eqnum
 \end{equation*}
-whose interpretation is that our prior believes combined with our observations (likelihood) construct our posterior predictions. Eq. \eqref{eq:GP:posterior} is all we need for prediction. According to this equation, the posterior mean is a linear function of the observed targets $\mathbf{y}_1$, while the posterior covariance matrix is constant. Fig. \ref{fig:prior:posterior} summarizes out achievements so far.
+whose interpretation is that our prior believes combined with our observations (likelihood) construct our posterior predictions. Eq. \eqref{eq:GP:posterior} is all we need for prediction. According to this equation, the posterior mean is a linear function of the observed targets $\mathbf{y}_1$, while the posterior covariance matrix is constant. Fig. \ref{fig:prior:posterior} summarizes our achievements so far.
 \begin{figure}[t!]
 \centering
 \includegraphics[width=12cm]{figs/prior-posterior.png}
-\caption{The left figure shows three functions drawn at random from a GP prior. The dots indicate values of $y_{2,i}$ actually generated. The right figure depicts functions that have been drawn as lines by joining a large number evaluated pionts. Notice that the functions look smooth. The middle figure depicts three random functions drawn from the posterior. The + signs are five noise free observation indicated. In both plots the shaded area represents the pointwise mean $\mu_{1|2}$ plus and minus $2\sigma_{1|2}$ known as the 95 percent \textbf{confidence region}. Pay attention to the fact that the variance vanishes rapidly near the observed data points and increase as we get away from them. \cite{Rasmussen2006}.}
+\caption{The left figure shows three random functions drawn from a GP prior. The dots indicate values of $y_{2,i}$ that are actually generated. The right figure depicts three random functions drawn from a GP posterior as lines by joining a large number of evaluated pionts. Notice that the functions look smooth. The + signs are five noise free observation indicated. In both plots the shaded area represents the pointwise mean $\mu_{1|2}$ plus and minus $2\sigma_{1|2}$ known as the 95 percent \textbf{confidence region}. Pay attention to the fact that the variance vanishes rapidly near the observed data points and increases as we get away from them \cite{Rasmussen2006}.}
 \label{fig:prior:posterior}
 \end{figure}
 
@@ -712,18 +731,14 @@ p_{\mathbf{Z}_{1}, \mathbf{Y}_{2}}(\mathbf{z}_{1}, \mathbf{y}_{2}) =
 \mathbf{y}_2
 \end{bmatrix} ;
 \begin{bmatrix}
-\mathbf{0} \\
-\mathbf{0}
+\mathbf{0}_n \\
+\mathbf{0}_m
 \end{bmatrix} ,
 \begin{bmatrix}
 \mathsf{\Sigma}_{11}+\sigma_{\epsilon}^2\mathsf{I} & \mathsf{\Sigma}_{12} \\
 \mathsf{\Sigma}_{21} & \mathsf{\Sigma}_{22} 
 \end{bmatrix}
-\right) \sim
-\begin{bmatrix}
-\mathbf{Z}_1 \\
-\mathbf{Y}_2
-\end{bmatrix}
+\right) 
 \eqnum
 \label{eq:GP:noise:joint}
 \end{equation*}
@@ -738,7 +753,7 @@ p_{\mathbf{Y}_2|\mathbf{Z}_1}(\mathbf{y}_2|\mathbf{z}_1) =
 \end{equation*}
 In comparison with \cref{eq:GP:posterior}, we have replaced $\mathsf{\Sigma}_{11}$, $\mathbf{Y}_1$,  $\mathbf{y}_1$ with $\mathsf{\Sigma}_{11}+\sigma_{\epsilon}^2\mathsf{I}$,  $\mathbf{Z}_1$, $\mathbf{z}_1$, respectively.
 
-\subsection{GP Algorithm}
+\subsection{Gaussian Process Algorithm}
 Let us simplify our formulation of \cref{eq:GP:posterior:noise} a little bit. In the case that there is only one test point we introduce the following notation for the sub-blocks of the covariance matrix
 \begin{equation*}
 \mathsf{K}:=\mathsf{\Sigma}_{11} ,  \qquad
@@ -750,8 +765,8 @@ and the resulting simplifications follow
 \begin{equation*}
 \mathbf{Y}_2 = Y_2, \qquad
 \mathbf{y}_2 = y_2, \qquad
-\boldsymbol{\mu}_{1|2} = \mu_{1|2} \qquad
-\mathsf{\Sigma}_{1|2} = \sigma_{1|2}.
+\boldsymbol{\mu}_{2|1} = \mu_{2|1} \qquad
+\mathsf{\Sigma}_{2|1} = \sigma_{2|1}^2.
 \eqnum
 \end{equation*}
 Then, the posterior PDF in \cref{eq:GP:posterior:noise} reduces to a univariate Gaussian
@@ -764,60 +779,65 @@ p_{Y_2|\mathbf{Y}_1}(y_2|\mathbf{y}_1) =
 \end{equation*}
 and the posterior mean and variance will be
 \begin{align*}
-\mu_{1|2}  &= \mathbf{k}^{\top}(\mathsf{K}+\sigma_{\epsilon}^2\mathsf{I})^{-1}\mathbf{y}_1, \\
-\sigma_{1|2} &= k - \mathbf{k}^{\top} (\mathsf{K}+\sigma_{\epsilon}^2\mathsf{I})^{-1} \mathbf{k}.
+\mu_{2|1}  &= \mathbf{k}^{\top}(\mathsf{K}+\sigma_{\epsilon}^2\mathsf{I})^{-1}\mathbf{y}_1, \\
+\sigma_{2|1}^2 &= k - \mathbf{k}^{\top} (\mathsf{K}+\sigma_{\epsilon}^2\mathsf{I})^{-1} \mathbf{k}.
 \eqnum
 \end{align*}
-Noting that $\mathsf{K}+\sigma_{\epsilon}^2\mathsf{I}$ is symmetric PD, using the Cholesky decomposition, we get $\mathsf{K}+\sigma_{\epsilon}^2\mathsf{I}=\mathsf{L}\mathsf{L}^{\top}$. Substituting this into the new formulation we obtain
+Noting that $\mathsf{K}+\sigma_{\epsilon}^2\mathsf{I}$ is SPD, using the Cholesky decomposition, we get $\mathsf{K}+\sigma_{\epsilon}^2\mathsf{I}=\mathsf{L}\mathsf{L}^{\top}$. Substituting this into the new formulation we obtain
 \begin{align*}
-\mu_{1|2}  &= \mathbf{k}^{\top}\mathsf{L}^{-\top}\mathsf{L}^{-1}\mathbf{y}_1, \\
-\sigma_{1|2} &= k - (\mathsf{L}^{-1}\mathbf{k})^{\top}(\mathsf{L}^{-1}\mathbf{k}).
+\mu_{2|1}  &= \mathbf{k}^{\top}\mathsf{L}^{-\top}\mathsf{L}^{-1}\mathbf{y}_1, \\
+\sigma_{2|1}^2 &= k - (\mathsf{L}^{-1}\mathbf{k})^{\top}(\mathsf{L}^{-1}\mathbf{k}).
 \eqnum
 \label{eq:GP:posterior:alg}
 \end{align*}
-Using \cref{eq:GP:posterior:alg}, Algorithm \ref{alg:GP} addresses a simple method for calculating the predictive mean, variance, and hence the PDF in \eqref{eq:GP:posterior:single}.  It should be noted that we avoid computing the inverse directly as it is considered problematic from a numerical perpective \cite[Section 4.7]{Gill1991}. The main work is to compute the Cholesky decomposition, which takes $\mathcal{O}(\frac{1}{6}n^3)$ time. Solving the upper and lower-triangular linear systems in lines 14, 15, and 15 take $\mathcal{O}(\frac{1}{2}n^2)$ time. The dot produtcs in lines 16 and 19 needs $\mathcal{O}(n)$ time and the vector sum in line 19 requires $\mathcal{O}(n)$. Assuming that we use an SE kernel (RBF), calculating $\mathsf{K}$ takes a work of $\mathcal{O}(n^2d)$ and calculating $\mathbf{k}$ requires $\mathcal{O}(nd)$. Summing all these up, the running time $T(n,d)$ of the GP algorithm is of order
+\begin{algorithm}[t!]
+\caption{Gaussian Process}\label{alg:GP}
+\hspace*{\algorithmicindent} {\scshape Input}: $\mathsf{X}_1, \, \mathbf{y}_1, \, \kappa, \sigma_{\epsilon}^2, \, \mathbf{x}_{2,1}$ \\
+\hspace*{\algorithmicindent} {\scshape Output}: $\mu_{2|1}, \, \sigma_{2|1}^2$ \\
+\hspace*{\algorithmicindent}{\scshape Gaussian-Process}($\mathsf{X}_1, \, \mathbf{y}_1, \, \kappa, \sigma_{\epsilon}^2, \, \mathbf{x}_{2,1}$):
+\begin{algorithmic}[1]
+\LineComment{Calculate $\mathsf{K}+\sigma_{\epsilon}^2\mathsf{I}$ and its Cholesky decomposition.}
+\For{$i=1$ \textbf{to} $n$}
+    \For{$j=1$ \textbf{to} $n$}
+        \State $[\mathsf{K}]_{ij} = \kappa(\mathbf{x}_{1,i}, \mathbf{x}_{1,j})$
+    \EndFor
+\EndFor
+\State $\mathsf{L}= \text{{\scshape Cholesky-Decomposition}}(\mathsf{K}+\sigma_{\epsilon}^2\mathsf{I})$
+\LineComment{Calculate $\mathbf{k}$ and $k$}
+\For{$i=1$ \textbf{to} $n$}
+    \State $[\mathbf{k}]_{i} = \kappa(\mathbf{x}_{1,i}, \mathbf{x}_{2,1})$
+\EndFor
+\State $k = \kappa(\mathbf{x}_{2,1}, \mathbf{x}_{2,1})$
+\LineComment{Calculate $\mu_{2|1}$.}
+\State Solve $\mathsf{L} \mathbf{b} = \mathbf{y}_1$
+\State Solve $\mathsf{L}^{\top} \mathbf{a} = \mathbf{b}$
+\State $\mu_{2|1} = \mathbf{k}^{\top}\mathbf{a}$
+\LineComment{Calculate $\sigma_{2|1}^2$.}
+\State Solve $\mathsf{L} \mathbf{c} = \mathbf{k}$
+\State $\sigma_{2|1}^2=k-\mathbf{c}^{\top}\mathbf{c}$
+\State \Return ($\mu_{2|1}$, $\sigma_{2|1}^2$)
+\end{algorithmic}
+\end{algorithm}
+Using \cref{eq:GP:posterior:alg}, Algorithm \ref{alg:GP} addresses a simple method for calculating the predictive mean, variance, and hence the PDF in \eqref{eq:GP:posterior:single}.  It should be noted that we avoid computing the inverse directly as it is considered problematic from a numerical perpective \cite[Section 4.7]{Gill1991}. The main work is to compute the Cholesky decomposition, which takes $\mathcal{O}(\frac{1}{6}n^3)$ time. Solving the upper and lower-triangular linear systems in lines 14 and 15 takes $\mathcal{O}(\frac{1}{2}n^2)$ time. The dot produtcs in lines 16 and 19  and the matrix and vector sums in lines 7 and 19 requires $\mathcal{O}(n)$ time. Assuming that we use an SE kernel (RBF), calculating $\mathsf{K}$ takes a work of $\mathcal{O}(n^2d)$ and calculating $\mathbf{k}$ requires $\mathcal{O}(nd)$. Summing all these up, the running time $T(n,d)$ of the GP algorithm is of order
 \begin{equation*}
 T(n,d) \in \mathcal{O}\Big(\frac{1}{6}n^3+n^2d+\frac{3}{2}n^2+nd+n\Big),
 \eqnum
 \end{equation*}
-where $n$ is the size of our dataset and $d$ is the number of features. In the case of $n \gg d$, this simplifies to
+where $n$ is the size of our dataset and $d$ is the number of features or dimension of the input space. In the case of $n \gg d$, this simplifies to
 \begin{equation*}
-T(n,d) \in \mathcal{O}\Big(\frac{1}{6}n^3\Big).
+T(n,d) \in \mathcal{O}\Big(\frac{1}{6}n^3\Big),
 \eqnum
 \end{equation*}
-\begin{algorithm}[t!]
-\caption{Gaussian Process}\label{alg:GP}
-\hspace*{\algorithmicindent} {\scshape Input}: $\mathsf{X}_1, \, \mathbf{y}_1, \, \kappa, \sigma_{\epsilon}, \, \mathbf{x}_{2,1}$ \\
-\hspace*{\algorithmicindent} {\scshape Output}: $\mu_{1|2}, \, \sigma_{1|2}$
-\begin{algorithmic}[1]
-\LineComment{Calculate $\mathsf{K}$.}
-\For{$i=1$ \textbf{to} $n$}
-    \For{$j=1$ \textbf{to} $n$}
-        \State $\mathsf{K}_{ij} = \kappa(\mathbf{x}_{1,i},\mathbf{x}_{1,j})$;
-    \EndFor
-\EndFor
-\LineComment{Calculate $\mathbf{k}$.}
-\For{$i=1$ \textbf{to} $n$}
-    \State $k_{i} = \kappa(\mathbf{x}_{1,i},\mathbf{x}_{2,1})$;
-\EndFor
-\LineComment{Calculate Cholesky decomposition.}
-\State $\mathsf{L}=\text{Cholesky}(\mathsf{K}+\sigma_{\epsilon}^2\mathsf{I})$;
-\LineComment{Calculate $\mu_{1|2}$.}
-\State Solve $\mathsf{L} \mathbf{b} = \mathbf{y}_1$;
-\State Solve $\mathsf{L}^{\top} \mathbf{a} = \mathbf{b}$;
-\State $\mu_{1|2} = \mathbf{k}^{\top}\mathbf{a}$;
-\LineComment{Calculate $\sigma_{1|2}$.}
-\State Solve $\mathsf{L} \mathbf{c} = \mathbf{k}$;
-\State $\sigma_{1|2}=k-\mathbf{c}^{\top}\mathbf{c}$;
-\end{algorithmic}
-\end{algorithm}
-
+showing a cubic time complexity in dataset size for the GP algorithm.
+\begin{rem}
+In order to make predication at different test points $\mathbf{x}_{2, l}$, you need to run \cref{alg:GP} for $l=1,\dots,m$, where $m$ is the number of test points. In order to make this more efficient, pay attention that the lines 2-7 and 14-15 does not depend on $\mathbf{x}_{2, l}$ so you can do their calculations once and employ it at every iteration.
+\end{rem}
 \subsection{Kernels and Hyperparameters}
 Typically, the kernel functions that we use will have some free parameters, known as hyperparameters that are not determined during the learning process. According to eqs. \eqref{eq:RBF} and \eqref{eq:GP:posterior:single}, the hyperparameters for a noisy GP prediction with the SE kernel are the length-scale $\ell$, the signal variance $\sigma_y$, and the noise variance $\sigma_{\epsilon}$.  The hyperparameter $\sigma_y$ controls the amplitude of the covariance between the random variables $f(\mathbf{x})$ and $f(\mathbf{x}')$. $\sigma_{\epsilon}$ determines the amplitude of the variance of the noise $\mathcal{E}_i$. The hyperparameter $\ell$ determines a neighborhood radius around an input point $\mathbf{x}$ such that for every other input point $\mathbf{x}'$ lying in that neighborhood the corresponding random variables $f(\mathbf{x})$ and $f(\mathbf{x}')$ have a high correlation. Fig. \ref{fig:length:scale} illustrates the effect of this hyperparameter on the predictive distribution. The overall message of the figure is that the hyperparameters can significantly affect the posterior distribution. This gives rise to the question of how should we choose these hyperparameters. In the following, we address two methods for tunning hyperparameters, but this can be studied in more depth by consulting the Bible of GPs \cite[Chapter 5]{Rasmussen2006}.
 \begin{figure}[t!]
 \centering
 \includegraphics[width=17cm]{figs/length-scale.png}
-\caption{In all three figures + signs show the training data and the solid blue line is the posterior mean. The figures show GPs with SE kernels but different hyper-parameters fit to 20 noisy observations. In the left figure, the hyperparameters are $(\ell, \sigma_y, \sigma_{\epsilon})=(0.3, 1.08, 0.00005)$ that corresponds to a short length-scale and as we see the wiggly looking mean oscillates so rapidly that it has fit almost all training data, ringing the bell for possible overfitting . In the middle figure, the hyperparameter are $(\ell, \sigma_y, \sigma_{\epsilon})=(1, 1, 0.1)$ that corresponds to a medium length-scale. The oscillations of the mean are reduced in comparison with the left figure. This is in agreement with our intuition that the length-scale represents a neighborhood radius that you can move in the input space before the target values change drastically. In the right figure, the hyper parameters are  $(\ell, \sigma_y, \sigma_{\epsilon})=(3, 1.16, 0.89)$, which corresponds to a long length-scale. As we see, the mean varies so slowly and has not fit many of the training data, showing that the model's bias has increased significantly. In all of the figures, if the $x$-axis were extended one would observe that the width of the confidence region $4\sigma_{1|2}$ remains constant and reaches the value $4\sigma_y$. You can get more sense about this phenomenon by looking at \cref{eq:GP:posterior:alg} \cite{Rasmussen2006}.}
+\caption{In all three figures + signs show the training data and the solid blue line is the posterior mean $\mu_{2|1}$. The figures show GPs with SE kernels and different hyperparameters fit to 20 noisy observations. In the left figure, the hyperparameters are $(\ell, \sigma_y, \sigma_{\epsilon})=(0.3, 1.08, 0.00005)$ that corresponds to a short length-scale and as we see the wiggly looking mean oscillates so rapidly that it has fit almost all training data, ringing the bell for possible overfitting . In the middle figure, the hyperparameter are $(\ell, \sigma_y, \sigma_{\epsilon})=(1, 1, 0.1)$ that corresponds to a medium length-scale. The oscillations of the mean are reduced in comparison with the left figure. This is in agreement with our intuition that the length-scale represents a neighborhood radius that you can move in the input space before the target values change drastically. In the right figure, the hyper parameters are  $(\ell, \sigma_y, \sigma_{\epsilon})=(3, 1.16, 0.89)$, which corresponds to a long length-scale. As we see, the mean varies so slowly and has not fit many of the training data, showing that the model's bias has increased significantly. In all of the figures, if the $x$-axis were extended one would observe that the width of the confidence region $4\sigma_{2|1}$ remains constant and reaches the value $4\sigma_y$. You can get more sense about this phenomenon by looking at \cref{eq:GP:posterior:alg} \cite{Rasmussen2006}.}
 \label{fig:length:scale}
 \end{figure}
 
@@ -829,7 +849,7 @@ In this sub-section, we consider how to use methods of cross-validation (CV) for
 \caption{The figure illustrates a $5$-fold cross validation \cite{sklearn}.}
 \label{fig:cross:validation}
 \end{figure}
-In practice a drawback of this method is that only a fraction of the full data set can be used for training, and that if the validation set is small, the performance estimate obtained may have large variance. To minimize these problems, CV is almost always used in the $k$-\textbf{fold} setting. In $k$-fold CV data is split into $k$ disjoint, equally sized subsets; validation is done on a single subset and training is done using the union of the remaining $k -1$ subsets, the entire procedure being repeated $k$ times, each time with a different subset for validation. Thus, a large fraction of the data can be used for training, and all cases appear as validation cases. The price is that $k$ models must be trained instead of one. Typical values for $k$ are in the range 3 to 10. An extreme case of $k$-fold cross-validation is obtained for $k = n$, the number of training data points, also known as \textbf{Leave-One-Out Cross-Validation} (LOO-CV). Often the computational cost of LOO-CV (training $n$ models) is high. Cross-validation can be used with any loss function. Although the \textbf{squared error loss} is by far the most common for regression \cite[Chapter 5]{Rasmussen2006}. 
+In practice, a drawback of this method is that only a fraction of the full data set can be used for training, and that if the validation set is small, the performance estimate obtained may have large variance. To minimize these problems, CV is almost always used in the $k$-\textbf{fold} setting. In $k$-fold CV, data is split into $k$ disjoint equally sized subsets. Validation is done on a single subset and training is done using the union of the remaining $k -1$ subsets, the entire procedure being repeated $k$ times, each time with a different subset for validation. Thus, a large fraction of the data can be used for training, and all cases appear as validation cases. The price is that $k$ models must be trained instead of one. Typical values for $k$ are in the range 3 to 10. An extreme case of $k$-fold cross-validation is obtained for $k = n$, the number of training data points, also known as \textbf{Leave-One-Out Cross-Validation} (LOO-CV). Often the computational cost of LOO-CV (training $n$ models) is high. Cross-validation can be used with any loss function. Although the \textbf{squared error loss} is by far the most common for regression \cite[Chapter 5]{Rasmussen2006}. 
 
 To summarize, you should consider discrete values for each hyperparameter and construct a \textbf{search grid} for each split shown in \cref{fig:cross:validation}. Then, you calculate the squared error loss for each point of the grid in a fixed split. Repeating this for all of the splits, you obtain $k$ different squared error loss for each point of the grid. Finally, you can choose that value of the hyperparameters that results in the minimum averaged squared error loss over all the $k$ values.
 
@@ -838,7 +858,7 @@ To summarize, you should consider discrete values for each hyperparameter and co
 \centering
 \includegraphics[width=17cm]{figs/marginal-likelihood.png}
 \caption{The left figure shows the marginal likelihood as a function of the hyperparameters $\ell$ and $\sigma_{\epsilon}$. Signal's standard
-deviation is chosen to be $\sigma_y^2 = 1$ for a dataset of 7 observations shown by + signs in the other two figures. There are two local optima, indicated with + signs in the left figure. The middle figure shows the function corresponding to the lower left local maximum that has the hyperparameters $(\ell, \sigma_{\epsilon}^2)=(1, 0.2)$ and is indeed the global maximum. This is quite \textit{wiggly} and has low noise and short length-scale. The function corresponding to the top right local maximum has the hyperparameters $(\ell, \sigma_{\epsilon}^2)=(10, 0.8)$. This is quite smooth and has high noise and long length-scale \cite[Section 5.4.1]{Rasmussen2006}. With only 7 data points, there is not enough evidence to confidently decide which is more reasonable, although the more oscillating model (middle figure) has a marginal likelihood that is about 60 percent higher than the simpler model (right figure)\cite[Section 15.2.4]{Murphy2012}.}
+deviation is chosen to be $\sigma_y^2 = 1$ for a dataset of 7 observations shown by + signs in the other two figures. There are two local optima, indicated with + signs in the left figure. The middle figure shows the function corresponding to the lower left local maximum that has the hyperparameters $(\ell, \sigma_{\epsilon}^2)=(1, 0.2)$ and is indeed the global maximum. This is quite \textit{wiggly} and has low noise and short length-scale. The function corresponding to the top right local maximum has the hyperparameters $(\ell, \sigma_{\epsilon}^2)=(10, 0.8)$. This is quite smooth and has high noise and long length-scale \cite[Section 5.4.1]{Rasmussen2006}. With only 7 data points, there is not enough evidence to confidently decide which is more reasonable, although the more oscillating model (middle figure) has a marginal likelihood that is about 60 percent higher than the other model (right figure)\cite[Section 15.2.4]{Murphy2012}.}
 \label{fig:marginal:likelihood}
 \end{figure}
 In this method, we look for those hyperparameters that maximize the probability of seeing the training data, i.e. maximizing the marginal likelihood (ML) $p_{\mathbf{Z}_1}(\mathbf{z}_1)$. This is indeed based on the \textbf{frequentist} view of statistics. From \eqref{eq:GP:noise:joint}, we know that
@@ -890,26 +910,24 @@ Using \cref{eq:matrix:der}, computing the gradient of log-ML in \cref{eq:ML:log}
 \eqnum
 \label{eq:ML:log:grad}
 \end{align*}
-where we used the fact that the trace of a scalar equals the scalar itself along with the linearity of the trace and the general identity $\tr(\mathsf{A}\mathsf{B})=\tr(\mathsf{B}\mathsf{A})$. The computational cost for the ML in \eqref{eq:ML:log:grad} is dominated by computing the inverse $\mathsf{K}_z^{-1}$. More specifically, since $\mathsf{K}_z$ is symmetric PD, its inverse can be computed by first calculating the Cholesky decomposition and solving $n$ resulting upper- and lower-triangular linear systems, which takes a work of $\mathcal{O}(n^3)$.
+where we used the fact that the trace of a scalar equals the scalar itself along with the linearity of the trace and the general identity $\tr(\mathsf{A}\mathsf{B})=\tr(\mathsf{B}\mathsf{A})$. The computational cost for the ML in \eqref{eq:ML:log:grad} is dominated by computing the inverse $\mathsf{K}_z^{-1}$. More specifically, since $\mathsf{K}_z$ is SPD, its inverse can be computed by first calculating the Cholesky decomposition and solving $n$ resulting upper- and lower-triangular linear systems, which takes a work of $\mathcal{O}(n^3)$.
 
 Fig. \ref{fig:marginal:likelihood} illustrates an example of finiding the optimal values for hyperparameters $\boldsymbol{\theta}=(\ell, \sigma_{\epsilon})^{\top}$ of a GP model with an SE kernel. We observe that there may exist several local optimums as the marginal likelihood is not a convex function.
 
 \subsubsection{Constructing New Kernels}
 As described earlier, the power of GP lies in the choice of the kernel function. This property allows us to introduce domain knowledge into the process and lends GPs their flexibility to capture trends in the training data. For example, by choosing a suitable length-scale for the RBF kernel, we can control how smooth and oscillating the resulting function will be. A big benefit that kernels provide is that they can be combined together, resulting in a more specialized kernel. The decision of which kernel to use is highly dependent on prior knowledge about the data, e.g. if certain characteristics are expected \cite{Gortler2019}.
 
-The only constraint on our choice of covariance function is that it must generate a PD covariance matrix for any set of input points. In this connection, we have following theorem
+The only constraint on our choice of covariance function is that it must generate a SPD covariance matrix for any set of input points. In this connection, we have following theorem
 \begin{thm}
 The sum and product of two kernels is a kernel.
 \end{thm}
-For the proof of this theorem, a wide range of kernel functions, and other possibilities of combining kernels see \cite[Section 4.2]{Rasmussen2006}. For example, the sum property can be used to add RBF kernels with different characteristic length-scales and product rule can be employed to produce trending functions with varying oscillations.
 \begin{figure}[t!]
 \centering
 \includegraphics[width=17cm]{figs/combine-kernels.png}
 \caption{The figures show samples drawn from prior distributions with different kernels. Addition results in an oscillating function with a global trend, while multiplication increases the oscillation amplitude outwards \cite{Gortler2019}.}
 \label{fig:kernels:combine}
 \end{figure}
-
-Fig. \ref{fig:kernels:combine} depicts combinations of a linear and a periodic kernel via summation and multiplication. The two aforementioned kernels are defined as
+For the proof of this theorem, a wide range of kernel functions, and other possibilities of combining kernels see \cite[Section 4.2]{Rasmussen2006}. For example, the sum property can be used to add RBF kernels with different characteristic length-scales and product rule can be employed to produce trending functions with varying oscillations. Fig. \ref{fig:kernels:combine} depicts combinations of a linear and a periodic kernel via summation and multiplication. The two aforementioned kernels are defined as
 \begin{align*}
 \kappa_{\text{per}}(x,x') &= \sigma_y\exp\Big(-\frac{2}{\ell^2}\sin^2\Big(\frac{\pi( x-x')}{p}\Big)\Big), \\
 \kappa_{\text{lin}}(x, x') &= \sigma_b+\sigma_y(x-c)^{\top}(x'-c),
@@ -924,14 +942,14 @@ Here, we mention an interesting real world example of GPs in action. The compute
 In this tutorial, we took a trip from the basics of GPs to their real world applications. We learned that GPs are \textbf{supervised probabilistic} models with high capability for doing regression. Fortunately, they can also be extended for classification tasks. For this purpose, the main idea is to pass the output values  through a sigmoid function. You can study more about this in \cite[Chapter 3]{Rasmussen2006}. More surprisingly, GPs have several models as their special cases. Indeed, some of the well known results are that
 \begin{enumerate}[noitemsep]
 \item Using \cref{eq:GP:posterior:alg} and Mercer's theorem \cite[Section 4.3]{Rasmussen2006}, it can be shown that the posterior mean $\mu_{1|2}$ is equivalent to a Regression model with nonlinear basis functions and \textbf{inifinite} number of parameters. In this regard, it is said that a GP model is a \textbf{non-parametric} model. Despite what the name suggests, it is meant that it can have as many parameters as required.
-\item The Ridge regression model can be recoverd by the posterior mean $\mu_{1|2}$, if we choose a dot product kernel $\kappa(\mathbf{x},\mathbf{x}')=\mathbf{x}^{\top}\mathbf{x}'$ and set the noise variance $\sigma_{\epsilon}$ equal to the regularization parameter $\delta$ \cite[Lecture 9]{Freitas2013}.
+\item The Ridge regression model can be recoverd by the posterior mean $\mu_{2|1}$, if we choose a dot product kernel $\kappa(\mathbf{x},\mathbf{x}')=\mathbf{x}^{\top}\mathbf{x}'$ and set the noise variance $\sigma_{\epsilon}$ equal to the regularization parameter $\delta$ \cite[Lecture 9]{Freitas2013}.
 \item It can also be shown that specific large neural networks are equivalent to a GP \cite{MacKay1998}.
 \end{enumerate}
 The main drawback of GPs is their $\mathcal{O}(n^3)$ time complexity, which makes it hard to scale. One of the main trends of research in recent years is to make GPs appropriate for large datasets. You can start reading about this in \cite[Chapter 8]{Rasmussen2006}. A good review about scalable GPs is also presented in \cite{Liu2020}.
 
 
 \section{Support}
-I am happy that you have read this so far, showing that you are serious about understanding GPs and machine learning. I tried to write an easy-to-follow and at the same time rigorous introduction to GPs and I hope that it appealed to you. If you liked this tutorial, please give the repository of this document a star on \href{https://github.com/Hosein-Rahnama/Gaussian-Processes.git}{GitHub}. Futhermore, you are more than welcomed to report any errors by opening an issue or to suggest further improvements by making pull requests on \href{https://github.com/Hosein-Rahnama/Gaussian-Processes.git}{GitHub}.
+I am happy that you have read this so far, showing that you are serious about understanding GPs and machine learning. I tried to write an easy-to-follow and at the same time rigorous introduction to GPs and I hope that it appealed to you. If you liked this tutorial, please give the \href{https://github.com/Hosein-Rahnama/Gaussian-Processes.git}{GitHub repository} of this document a star. Futhermore, you are more than welcomed to report any errors by opening an issue or to suggest further improvements by making pull requests on the repository.
 
 
 \newpage
