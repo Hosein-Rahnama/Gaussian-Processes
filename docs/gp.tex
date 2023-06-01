@@ -60,15 +60,16 @@ H. Rahnama \\
 \end{center}
 \bigskip
 \begin{abstract}
-This is an introduction to the basics of Gaussian Processes (GP). Particulary, we are interested in their applications for regression and machine learning. The tutorial is mainly divided in two parts. In the first part, we present a step-by-step explanation of the necessary mathematics to understand GPs. For this purpose, we assume that the reader is familiar with linear algebra, probability, and multivariable calculus. In this part, we touch upon the Cholesky decomposition, the matrix inversion lemma for partitioned matrices, MultiVariate Normal (MVN) Probability Density Functions (PDF) for continuous random vectors, and three main operations assosiated with MVNs, namely sampling, conditioning, and marginalization. In the second part, we define what a GP is and learn how to do regression with GPs in the cases of noise-free and noisy data observations. Afterwards, we present a simple algorithm to do regression with GPs, investigate its time complexity and implementation. Then, we study the effect of hyperparameters of a special kernel function, well known as the Radial Basis Function (RBF), on the predictive distribution. This sets the motivation for optimizing the hyperparameters, which we shall address briefly via introducing Cross Validation (CV) and Marginal Likelihood (ML). We also talk about the methods of combining available kernels to construct new ones. Afterwards, we address a real world application of GPs for designing interactive interfaces. The paper concludes with some remarks about the connection of GPs with other models and their capability for scaling. \\[\baselineskip]
+This is an introduction to the basics of Gaussian Processes (GP). Particulary, we are interested in their applications for regression and machine learning. The tutorial is mainly divided in two parts. In the first part, we present a step-by-step explanation of the necessary mathematics to understand GPs. For this purpose, we assume that the reader is familiar with linear algebra, probability, and multivariable calculus. In this part, we touch upon the Cholesky decomposition, the matrix inversion lemma for partitioned matrices, MultiVariate Normal (MVN) Probability Density Functions (PDF) for continuous random vectors, and four main operations assosiated with MVNs, namely marginalization, conditioning,  sampling and linear combination. In the second part, we define what a GP is and learn how to do regression with GPs in the cases of noise-free and noisy data observations. Afterwards, we present a simple algorithm to do regression with GPs, investigate its time complexity and implementation. Then, we study the effect of hyperparameters of a special kernel function, well known as the Radial Basis Function (RBF), on the predictive distribution. This sets the motivation for optimizing the hyperparameters, which we shall address briefly via introducing Cross Validation (CV) and Marginal Likelihood (ML). We also talk about the methods of combining available kernels to construct new ones. Afterwards, we address a real world application of GPs for designing interactive interfaces. The paper concludes with some remarks about the connection of GPs with other models and their capability for scaling. \\[\baselineskip]
 \textbf{keywords}. Gaussian Process, Multivariate Normal Distribution, Regression, Kernels, Hyperparameters.
 \end{abstract}
 \tableofcontents
 \end{titlepage}
 
 
-\section{Mathematical Preliminaries}\label{sec:1}
+\section{Mathematical Preliminaries}
 In the first part of this tutorial, we express the mathematics that we will employ in the second part. Let us first pay attention to a very useful matrix decomposition.
+
 \subsection{Cholesky Decomposition}
 This decomposition for Symmetric Positive Definite (SPD) matrices is in perfect analogy with the square root of a positive real number.
 \begin{thm}[Cholesky Decomposition]\label{thm:chol}
@@ -140,7 +141,7 @@ Given the Cholesky decomposition, solving the SPD linear system $\mathsf{A}\math
    	\State $l_{kk} = a_{kk}- \text{sum}$
    	\LineComment{Check for positive definitness.}
    	\If{$l_{kk} \leq 0$}
-   		\State print $A$ is not positive definite;
+   		\State $\mathsf{A}$ is not positive definite
    		\State \Return
     \EndIf
    	\State $l_{kk} = \sqrt{l_{kk}}$;
@@ -159,7 +160,7 @@ Given the Cholesky decomposition, solving the SPD linear system $\mathsf{A}\math
 
 \subsection{Matrix Inversion Lemma}
 Here, we shall discuss an important lemma for inverting a partioned matrix and its imediate consequences. It will be useful in dealing with MVN PDFs. We have the following theorem.
-\begin{thm}[Matrix Inversion Lemma]\label{thm:MIL}
+\begin{lem}[Matrix Inversion]\label{lem:MIL}
 Consider a general invertible partioned matrix $\mathsf{M}\in\mathbb{R}^{n+m,n+m}$ as
 \begin{equation*}
 \mathsf{M} =
@@ -199,7 +200,7 @@ where $\mathsf{M}/\mathsf{A}:=\mathsf{B}-\mathsf{V}\mathsf{A}^{-1}\mathsf{U}$ is
 \eqnum
 \label{eq:schur:det}
 \end{equation*}
-\end{thm}
+\end{lem}
 \begin{prf}
 The idea is pretty simple. We will carry out a block diagonal Gauss-Jordan elimination on $\mathsf{M}$ and everything follows so naturally. Let us make the bottom left block zero by a block row operation as below
 \begin{equation*}
@@ -345,7 +346,7 @@ with $\Phi(x)$ defined as
 \begin{rem}
 For the special case $\mu = 0$ and $\sigma = 1$, the associated random variable is called \textbf{standard normal} and usually denoted by $Z$. The PDF and CDF of $Z$ are given by
 \begin{align*}
-p_{Z}(z) &= \mathcal{N}(z; 0, 1) = \frac{1}{\sqrt{2\pi}}\exp\Big(-\frac{z^2}{2}\Big), \\
+p_{Z}(z) &= \mathcal{N}(z; 0, 1) = \frac{1}{\sqrt{2\pi}}\exp\Big(-\frac{1}{2}z^2\Big), \\
 F_Z(z) &= \mathbb{P}(Z\leq z) = \int_{-\infty}^{z}p_Z(t)\df t = 
 \frac{1}{\sqrt{2\pi}}\int_{-\infty}^{z}\exp\Big(-\frac{1}{2}t^2\Big)\df t = \Phi(z).
 \eqnum
@@ -366,7 +367,7 @@ p_X(h^{-1}(y))\left|(h^{-1})'(y)\right| & \forall y \in B  \\
 \noindent
 An imediate and useful result of \cref{thm:MT} is the following lemma, which makes a connection between normal and standard normal random variables.
 \begin{lem}
-Assume that $X=\sigma Z + \mu$ holds for two random variables $X$ and $Z$. Then $X\sim\mathcal{N}(x; \mu, \sigma^2)$ is a normal random variable if and only if $Z\sim\mathcal{N}(z; 0, 1)$  is a standard normal random variable.
+Assume that $X=\sigma Z + \mu$ holds for two random variables $X$ and $Z$. Then, $X\sim\mathcal{N}(x; \mu, \sigma^2)$ is a normal random variable if and only if $Z\sim\mathcal{N}(z; 0, 1)$  is a standard normal random variable.
 \end{lem}
 \begin{prf}
 Assume that $Z$ is a standard normal random variable. Take $X=h(Z)=\sigma Z + \mu$. Consequently, we have $A=B=\mathbb{R}$ and $h^{-1}(x)=(x-\mu)/\sigma$. Applying the method of transformations, we obtain
@@ -440,7 +441,7 @@ This result is crucial and illustrates that if we are capable of sampling from $
 \end{rem}
 
 \subsection{Multivariate Gaussian Distribution}
-The Multivariate Gaussian or Normal (MVN) distribution is the most widely used joint PDF for continuous random vectors. In this subsection, we address three main operations with MVNs, including sampling, conditioning and marginalization.
+The Multivariate Gaussian or Normal (MVN) distribution is the most widely used joint PDF for continuous random vectors. In this subsection, we address four main operations with MVNs, including marginalization, conditioning,  sampling and linear combination.
 \begin{defn}
 A continuous random vector $\mathbf{X}$ is said to be a \textbf{normal} random vector, if its joint PDF is
 \begin{equation*}
@@ -467,7 +468,7 @@ p_{\mathbf{Z}}(\mathbf{z}) &=  \mathcal{N}(\mathbf{z};\boldsymbol{0},\mathsf{I})
 \end{rem}
 The following is the multivariate version of the method of transformations, which is a result of the change of variables theorem in multiple integrals.
 \begin{thm}[Method of Transformations]\label{thm:MT:MV}
-Let $\mathbf{X}\in\mathbb{R}^m$ be a continuous random vector, $p_\mathbf{X}$ be the PDF of $\mathbf{X}$ and $A\subseteq\mathbb{R}^m$ be the set of possible values of $\mathbf{X}$. For the invertible function $h:A\to\mathbb{R}^m$, let $\mathbf{Y}=h(\mathbf{X})$ be a random vector with the set of possible values $B=h(A)=\{h(a), a\in A\}$. Suppose that $h^{-1}$ has continuous partial derivatives and nonzero Jacobian at all points $\mathbf{y}\in B$; that is
+Let $\mathbf{X}$ be a continuous random vector, $p_\mathbf{X}$ be the PDF of $\mathbf{X}$ and $A\subseteq\mathbb{R}^m$ be the set of possible values of $\mathbf{X}$. For the invertible function $h:A\to\mathbb{R}^m$, let $\mathbf{Y}=h(\mathbf{X})$ be a random vector with the set of possible values $B=h(A)=\{h(a), a\in A\}$. Suppose that $h^{-1}$ has continuous partial derivatives and nonzero Jacobian at all points $\mathbf{y}\in B$; that is
 \begin{equation*}
 \det\mathsf{J}(h^{-1})(\mathbf{y})\ne 0, \qquad \forall \mathbf{y}\in B, \qquad \mathsf{J}(h^{-1})_{ij} := \frac{\partial (h^{-1})_i}{\partial y_j}.
 \eqnum
@@ -498,7 +499,7 @@ p_{\mathbf{Z}}(\mathbf{z}) &= |\det\mathsf{J}(h^{-1})(\mathbf{z})| \,\, p_{\math
 showing that $\mathbf{Z}$ is standard normal. The proof for the other direction is similar.
 \end{prf}
 \begin{thm}[Marginalization and Conditioning]\label{thm:MVN:MC}
-Suppose $\mathbf{Y}\sim\mathcal{N}(\mathcal{\mathbf{y}; \boldsymbol{\mu}, \mathsf{\Sigma}})$ is jointly Gaussian and is partitioned in two parts, where the first and second partitions have dimensions $m$ and $n$, respectively. We have
+Suppose $\mathbf{Y}\sim\mathcal{N}(\mathcal{\mathbf{y}; \boldsymbol{\mu}, \mathsf{\Sigma}})$ is jointly Gaussian and is partitioned in two parts with dimensions $m$ and $n$, respectively. We have
 \begin{equation}
 \mathbf{Y} =
 \begin{bmatrix}
@@ -516,10 +517,10 @@ Suppose $\mathbf{Y}\sim\mathcal{N}(\mathcal{\mathbf{y}; \boldsymbol{\mu}, \maths
 \mathsf{\Sigma_{21}} & \mathsf{\Sigma_{22}}
 \end{bmatrix},
 \end{equation}
-where $\boldsymbol{\mu}_1\in\mathbb{R}^m$, $\boldsymbol{\mu}_2\in\mathbb{R}^n$, $\mathsf{\Sigma}_{11}\in\mathbb{R}^{m,m}$, $\mathsf{\Sigma}_{22}\in\mathbb{R}^{n,n}$, $\mathsf{\Sigma}_{21} = \mathsf{\Sigma}_{12}^{\top}\in\mathbb{R}^{n,m}$. Then, the marginal PDFs are given by
+where $\boldsymbol{\mu}_1\in\mathbb{R}^n$, $\boldsymbol{\mu}_2\in\mathbb{R}^m$, $\mathsf{\Sigma}_{11}\in\mathbb{R}^{n,n}$, $\mathsf{\Sigma}_{22}\in\mathbb{R}^{m,m}$, $\mathsf{\Sigma}_{21} = \mathsf{\Sigma}_{12}^{\top}\in\mathbb{R}^{m,n}$. Then, the marginal PDFs are given by
 \begin{align*}
-p_{\mathbf{Y}_1}(\mathbf{y}_1) &= \int_{\mathbf{y}_1\in\mathbb{R}^m}p_{\mathbf{Y}_1,\mathbf{Y}_2}(\mathbf{y}_1, \mathbf{y}_2)\df \mathbf{y}_2 = \mathcal{N}(\mathbf{y}_1; \boldsymbol{\mu}_1, \mathsf{\Sigma}_{11}), \\
-p_{\mathbf{Y}_2}(\mathbf{y}_2) &= \int_{\mathbf{y}_2\in\mathbb{R}^n}p_{\mathbf{Y}_1,\mathbf{Y}_2}(\mathbf{y}_1, \mathbf{y}_2)\df \mathbf{y}_1 = \mathcal{N}(\mathbf{y}_2; \boldsymbol{\mu}_2, \mathsf{\Sigma}_{22}),
+p_{\mathbf{Y}_1}(\mathbf{y}_1) &= \int_{\mathbf{y}_1\in\mathbb{R}^n}p_{\mathbf{Y}_1,\mathbf{Y}_2}(\mathbf{y}_1, \mathbf{y}_2)\df \mathbf{y}_2 = \mathcal{N}(\mathbf{y}_1; \boldsymbol{\mu}_1, \mathsf{\Sigma}_{11}), \\
+p_{\mathbf{Y}_2}(\mathbf{y}_2) &= \int_{\mathbf{y}_2\in\mathbb{R}^m}p_{\mathbf{Y}_1,\mathbf{Y}_2}(\mathbf{y}_1, \mathbf{y}_2)\df \mathbf{y}_1 = \mathcal{N}(\mathbf{y}_2; \boldsymbol{\mu}_2, \mathsf{\Sigma}_{22}),
 \eqnum
 \label{eq:MVN:marg}
 \end{align*}
@@ -548,7 +549,7 @@ The proof of this theorem is lengthy. For a detailed treatment see \cite{Do2009}
 \item Write the integral form of the marginal and the algebraic expression of conditional density explicitly.
 \item Rewrite the integral and the expression by partitioning the precision matrix $\mathsf{\Lambda}=\mathsf{\Sigma}^{-1}$.
 \item Use a completion-of-squares technique to write the exponents in the integral and  expression in terms of quadratic forms for $\mathbf{y}_1$ and $\mathbf{y}_2$ with the corresponding sub-blocks of $\mathsf{\Lambda}$.
-\item Use the matrix inversion lemma in \cref{thm:MIL} to determine sub-blocks of the precision matrix $\mathsf{\Lambda}$ in terms of the sub-blocks of the covariance matrix $\mathsf{\Sigma}$ and argue that the resulting density is Gaussian.
+\item Use the matrix inversion lemma to determine sub-blocks of the precision matrix $\mathsf{\Lambda}$ in terms of the sub-blocks of the covariance matrix $\mathsf{\Sigma}$ and argue that the resulting density is Gaussian.
 \end{enumerate}
 This illustrates an outline for the proof.
 \end{prf}
@@ -568,6 +569,154 @@ p_{\mathbf{Z}}(\mathbf{z})
 showing that in this case the PDF becomes the products of marginal PDFs. The last equality is a result of marginalizatoin property of MVNs stated in \cref{thm:MVN:MC}. Now, we are able to sample a random normal vector $\mathbf{X}\sim\mathcal{N}(\mathbf{x}; \boldsymbol{\mu}, \mathsf{\Sigma})$. For this purpose, we first calculate the Cholesky factor $\mathsf{L}$ of $\mathsf{\Sigma}$. Then, we note that $\mathbf{X} = \mathsf{L} \mathbf{Z} + \boldsymbol{\mu}$, where $\mathbf{Z}\sim\mathcal{N}(\mathbf{z}; \mathbf{0}, \mathsf{I})$. Now, we are able to sample the random strandard normal vector $\mathbf{Z}=(Z_1,\dots,Z_m)^{\top}$ since by the marginalization property of Gaussians we know that $Z_i\sim\mathcal{N}(z_i, 0, 1)$.
 \label{exmp:sample}
 \end{rem}
+\begin{defn}
+For a continuous random vector $\mathbf{X}$, define
+\begin{equation}
+M_{\mathbf{X}}(\mathbf{t})  
+:= \mathbb{E}\big(\exp(\mathbf{t}^\top\mathbf{X})\big)
+= \int_{\mathbb{R}^m}\exp(\mathbf{t}^{\top}\mathbf{x})\,p_{\mathbf{X}}(\mathbf{x})\df\mathbf{x}.
+\end{equation}
+If $M_{\mathbf{X}}(\mathbf{t})$ is finite for all $\mathbf{t}$ in a neighborhood around the origin $B_{\mathbb{R}^m}(\mathbf{0}_m, r)$ with radius $r>0$, then $M_{\mathbf{X}}(\mathbf{t})$ is called the \textbf{Moment Generating Function} (MGF) of $\mathbf{X}$. If not, we say that MGF of  $\mathbf{X}$ does not exist.
+\end{defn}
+\begin{exmp}
+Let $\mathbf{Z}\sim\mathcal{N}(\mathbf{z}; \boldsymbol{\mu}, \mathsf{\Sigma})$ be a nomral random vector. We want to calculate its MGF. The procedure is straight forward as below
+\begin{align*}
+M_{\mathbf{Z}}(\mathbf{t}) = \mathbb{E}(\exp(\mathbf{t}^{\top}\mathbf{Z})) 
+&= \int_{\mathbb{R}^m}\exp(\mathbf{t}^{\top}\mathbf{z})\frac{1}{\sqrt{2\pi}^m}\exp\Big(-\frac{1}{2}\mathbf{z}^{\top}\mathbf{z}\Big)\df \mathbf{z} \\
+&= \int_{\mathbb{R}^m}\frac{1}{\sqrt{2\pi}^m}\exp\Big(-\frac{1}{2}(\mathbf{z}^{\top}\mathbf{z}-2\mathbf{t}^{\top}\mathbf{z})\Big)\df \mathbf{z} \\
+&= \int_{\mathbb{R}^m}\frac{1}{\sqrt{2\pi}^m}\exp\Big(-\frac{1}{2}\big((\mathbf{z}-\mathbf{t})^{\top}(\mathbf{z}-\mathbf{t})-\mathbf{t}^{\top}\mathbf{t}\big)\Big)\df \mathbf{z} \\
+&= \exp\Big(\frac{1}{2}\mathbf{t}^{\top}\mathbf{t}\Big)\int_{\mathbb{R}^m}\frac{1}{\sqrt{2\pi}^m}\exp\Big(-\frac{1}{2}\mathbf{u}^{\top}\mathbf{u}\Big)\df \mathbf{u} \\
+&= \exp\Big(\frac{1}{2}\mathbf{t}^{\top}\mathbf{t}\Big)\int_{\mathbb{R}^m}p_{\mathbf{Z}}(\mathbf{u})\df \mathbf{u} \\
+&= \exp\Big(\frac{1}{2}\mathbf{t}^{\top}\mathbf{t}\Big).
+\eqnum
+\label{eq:MGF:SN}
+\end{align*}
+\end{exmp}
+Now, we shall mention some lemmas and theorems that enable us to take advantage of the power of MGFs for obtaining the PDF of a wide range of random vectos. Using the following lemma, we can compute the MGF for a normal random vector. 
+\begin{lem}
+Let $\mathbf{X}$ and $\mathbf{Y}$ be continous random vectors in $\mathbb{R}^n$ and  $\mathbb{R}^m$, respectively. Suppose that $\mathbf{Y} = \mathsf{A} \mathbf{X} + \mathbf{b} $ with $\mathsf{A}\in\mathbb{R}^{m,n}$ and $\mathbf{b}\in\mathbb{R}^m$. Then, their MGFs are related by
+\begin{equation*}
+M_{\mathbf{Y}}(\mathbf{t}) = \exp(\mathbf{t}^{\top}\mathbf{b}) M_{\mathbf{X}}(\mathsf{A}^{\top}\mathbf{t}).
+\eqnum
+\label{eq:MGF:lin}
+\end{equation*}
+\end{lem}
+\begin{prf}
+It is just a matter of using definitions.
+\begin{align*}
+M_{\mathbf{Y}}(\mathbf{t}) &= \mathbb{E}(\exp(\mathbf{t}^{\top}\mathbf{Z}))
+= \mathbb{E}(\exp(\mathbf{t}^{\top}\mathsf{A}\mathbf{Z}+\mathbf{t}^{\top}\mathbf{b}))
+=\exp(\mathbf{t}^{\top}\mathbf{b})\mathbb{E}((\mathsf{A}^{\top}\mathbf{t})^{\top}\mathbf{Z}) \\
+&= \exp(\mathbf{t}^{\top}\mathbf{b})M_{\mathbf{X}}(\mathsf{A}^{\top}\mathbf{t}),
+\end{align*}
+which completes the proof.
+\end{prf}
+\begin{exmp}
+Let $\mathbf{X}\sim\mathcal{N}(\mathbf{x};\boldsymbol{\mu},\mathsf{\Sigma})$ be a nomral random vector. We know that $\mathbf{X} = \mathsf{L}\mathbf{Z}+\boldsymbol{\mu}$, where $\mathsf{L}$ is the Cholesky factor of $\mathsf{\Sigma}$ and $\mathbf{Z}\sim\mathcal{N}(\mathbf{z}, \mathbf{0}, \mathsf{I})$. Using Eqs. \eqref{eq:MGF:SN} and \eqref{eq:MGF:lin}, we have
+\begin{align*}
+M_{\mathbf{X}}(\mathbf{t}) 
+&= \exp(\mathbf{t}^{\top}\boldsymbol{\mu}) M_{\mathbf{Z}}(\mathsf{L}^{\top}\mathbf{t})
+= \exp(\mathbf{t}^{\top}\boldsymbol{\mu}) \exp\Big(\frac{1}{2}\mathbf{(\mathsf{L}^{\top}\mathbf{t}})^{\top}(\mathbf{\mathsf{L}^{\top}\mathbf{t}})\Big)
+= \exp(\mathbf{t}^{\top}\boldsymbol{\mu}) \exp\Big(\frac{1}{2}\mathbf{t}^{\top}(\mathsf{L}\mathsf{L}^{\top})\mathbf{t}\Big) \\
+&= \exp\Big(\frac{1}{2}\mathbf{t}^{\top}\mathsf{\Sigma}\,\mathbf{t}+\mathbf{t}^{\top}\boldsymbol{\mu}\Big).
+\eqnum
+\label{eq:MGF:N}
+\end{align*}
+\end{exmp}
+We have the following important result. It shows that an MGF determines the PDF uniquely. That is, if two random vectors have the same MGF, then they are identically distributed \cite{Gharamani2019}.
+\begin{thm}[Uniqueness of MGF]
+Let $\mathbf{X}$ and $\mathbf{Y}$ be two continuous random vectors. Then, $M_{\mathbf{X}}(\mathbf{t})=M_{\mathbf{Y}}(\mathbf{t})$ for all $\mathbf{t}\in B_{\mathbb{R}^m}(\mathbf{0}_m, r)$ with some $r>0$ if and only if  $p_{\mathbf{X}}(\mathbf{z})=p_{\mathbf{Y}}(\mathbf{z})$  for all $\mathbf{z}\in\mathbb{R}^m$.
+\end{thm}
+The uniqueness theorem along with the following theorem give us a powerful tool for determining the distribution of the sum of independent random vectors.
+\begin{thm}[MGF of Sums]\label{thm:MGF:sum}
+Let $\mathbf{X}_1,\dots,\mathbf{X}_k$ be independent random vectors and define $\mathbf{X}=\mathbf{X}_1+\dots+\mathbf{X}_k$. Then, MGF of $\mathbf{X}$ is given by
+\begin{equation*}
+M_{\mathbf{X}}(\mathbf{t}) = M_{\mathbf{X}_1}(\mathbf{t}) \dots M_{\mathbf{X}_k}(\mathbf{t}).
+\eqnum
+\label{eq:MGF:sum}
+\end{equation*}
+\end{thm}
+\begin{prf}
+Again, we stick to the definitions and everything follows so naturally.
+\begin{align*}
+M_{\mathbf{X}}(\mathbf{t}) &= \mathbb{E}(\exp(\mathbf{t}^{\top}\mathbf{X}))
+= \mathbb{E}(\exp(\mathbf{t}^{\top}\mathbf{X}_1+\dots+\mathbf{t}^{\top}\mathbf{X}_k)) \\
+&= \mathbb{E}(\exp(\mathbf{t}^{\top}\mathbf{X}_1)\dots\exp(\mathbf{t}^{\top}\mathbf{X}_k))
+= \mathbb{E}(\exp(\mathbf{t}^{\top}\mathbf{X}_1))\dots\mathbb{E}(\exp(\mathbf{t}^{\top}\mathbf{X}_k)) \\
+&= M_{\mathbf{X}_1}(\mathbf{t}) \dots M_{\mathbf{X}_k}(\mathbf{t}),
+\end{align*}
+where we made use of the fact that $\exp(\mathbf{t}^{\top}\mathbf{X}_i)$ with $i=1,\dots,k$ are independent random variables as $\mathbf{X}_i$ are independent random vectors. This completes the proof.
+\end{prf}
+\begin{thm}[Linear Combination of Independent Gaussians]\label{thm:MVN:LC}
+Let $\mathbf{X}_i$ with $p_{\mathbf{X}_i}(\mathbf{x})=\mathcal{N}(\mathbf{x}; \boldsymbol{\mu}_i, \mathsf{\Sigma}_i)$  for $i=1,\dots,k$ be independent normal random vectors and define $\mathbf{X}=c_1\mathbf{X}_1+\dots+c_k\mathbf{X}_k$, where $c_i\in\mathbb{R}$. Then, $\mathbf{X}$ is a normal random vector and its PDF is given by
+\begin{equation*}
+p_{\mathbf{X}}(\mathbf{x}) = \mathcal{N}\Big(\mathbf{x}; \sum_{i=1}^{k}c_i\boldsymbol{\mu}_i, \sum_{i=1}^{k}c_i^2\mathsf{\Sigma}_i\Big).
+\eqnum
+\label{eq:MVN:LC}
+\end{equation*}
+\end{thm}
+\begin{prf}
+Let us first define $\mathbf{Y}_i=c_i\mathbf{X}_i$. According to \cref{eq:MGF:lin}, taking $\mathsf{A}=c_i\mathsf{I}$ and $\mathbf{b}=\mathbf{0}$ leads to $M_{\mathbf{Y}_i}(\mathbf{t})=M_{\mathbf{X}_i}(c_i\mathbf{t})$.  Notice that $\mathbf{X} = \mathbf{Y}_1 + \dots \mathbf{Y}_k$ and use \cref{thm:MGF:sum} along with \cref{eq:MGF:N} to obtain
+\begin{align*}
+M_{\mathbf{X}}(\mathbf{t}) &= M_{\mathbf{Y}_1}(\mathbf{t}) \dots M_{\mathbf{Y}_k}(\mathbf{t}) 
+= M_{\mathbf{X}_1}(c_1\mathbf{t}) \dots M_{\mathbf{X}_k}(c_k\mathbf{t}) \\
+&= \exp\Big(\frac{1}{2}(c_1\mathbf{t})^{\top}\mathsf{\Sigma}_1\,(c_1\mathbf{t})+(c_1\mathbf{t})^{\top}\boldsymbol{\mu}_1\Big) \dots
+\exp\Big(\frac{1}{2}(c_k\mathbf{t})^{\top}\mathsf{\Sigma}_k\,(c_k\mathbf{t})+(c_k\mathbf{t})^{\top}\boldsymbol{\mu}_k\Big) \\
+&= \exp\Big(\frac{1}{2}c_1^2\mathbf{t}^{\top}\mathsf{\Sigma}_1\,\mathbf{t}+c_1\mathbf{t}^{\top}\boldsymbol{\mu}_1\Big) \dots
+\exp\Big(\frac{1}{2}c_k^2\mathbf{t}^{\top}\mathsf{\Sigma}_k\,c_k\mathbf{t}+c_k\mathbf{t}^{\top}\boldsymbol{\mu}_k\Big) 
+\end{align*}
+which can be further simplied by combining the exponentials to get
+\begin{equation*}
+M_{\mathbf{X}}(\mathbf{t}) 
+= \exp\Big( \sum_{i=1}^{k}\frac{1}{2}c_i^2\mathbf{t}^{\top}\mathsf{\Sigma}_i\,\mathbf{t}  + \sum_{i=1}^{k} c_i\mathbf{t}^{\top}\boldsymbol{\mu}_i \Big) 
+= \exp\Big( \frac{1}{2}\mathbf{t}^{\top}\Big(\sum_{i=1}^{k}c_i^2\mathsf{\Sigma}_i\Big)\,\mathbf{t}  + \mathbf{t}^{\top}\Big(\sum_{i=1}^{k} c_i\boldsymbol{\mu}_i \Big)\Big).
+\end{equation*}
+Now, the uniqueness theorem for MGFs and \cref{eq:MGF:N} imply that the PDF of $\mathbf{X}$ is given by \cref{eq:MVN:LC}
+\end{prf}
+
+As an application of the uniqueness theorem consider the following lemma that we shall use later.
+\begin{lem}\label{lem:noise}
+Let $\mathbf{Y}=(\mathbf{Y}_1, \mathbf{Y}_2)$ be a normal random vector in $\mathbb{R}^{n+m}$ with $p_{\mathbf{Y}}(\mathbf{y})=\mathcal{N}(\mathbf{y}; \boldsymbol{\mu}, \mathsf{\Sigma})$. Let $\mathbf{E}_1$ be a normal random vector in $\mathbb{R}^n$, which is independent of $\mathbf{Y}$ and $p_{\mathbf{E}_1}(\mathbf{y}_1)=\mathcal{N}(\mathbf{y}_1; \mathbf{0}_n, \mathsf{\Gamma}_{11})$. If $\mathbf{Z} = \mathbf{Y} + \mathbf{E}$ with $\mathbf{E}=(\mathbf{E}_1,\mathbf{0}_m)$, then $\mathbf{Z}$ is a normal random vector in $\mathbb{R}^{n+m}$ and its PDF is given by
+\begin{equation}
+p_{\mathbf{Z}}(\mathbf{y})
+= \mathcal{N}(\mathbf{y}; \boldsymbol{\mu}, \mathsf{\Sigma}+\mathsf{\Gamma})
+= \mathcal{N} \left(
+\begin{bmatrix}
+\mathbf{y}_1 \\
+\mathbf{y}_2
+\end{bmatrix} ;
+\begin{bmatrix}
+\boldsymbol{\mu}_1 \\
+\boldsymbol{\mu}_2
+\end{bmatrix} ,
+\begin{bmatrix}
+\mathsf{\Sigma}_{11}  & \mathsf{\Sigma}_{12} \\
+\mathsf{\Sigma}_{21} & \mathsf{\Sigma}_{22}
+\end{bmatrix}
++
+\begin{bmatrix}
+\mathsf{\Gamma}_{11}  & \mathsf{0}_{n,m} \\
+\mathsf{0}_{m,n} & \mathsf{0}_{m,m}
+\end{bmatrix}
+\right) \cdot
+\eqnum
+\label{eq:PDF:noise}
+\end{equation}
+\end{lem}
+\begin{prf}
+Note that $\mathbf{E}$ is not a \textit{continuous} random vector, and so not normal. This means we cannot use \cref{thm:MVN:LC}. However, MGFs come to the rescue again.
+\begin{align*}
+M_{\mathbf{Z}}(\mathbf{t}) 
+&= \mathbb{E}(\exp(\mathbf{t}^{\top}\mathbf{Y} + \mathbf{t}^{\top}\mathbf{E}))
+= \mathbb{E}(\exp(\mathbf{t}^{\top}\mathbf{Y})\exp(\mathbf{t}_1^{\top}\mathbf{E}_1))
+= \mathbb{E}(\exp(\mathbf{t}^{\top}\mathbf{Y}))\mathbb{E}(\exp(\mathbf{t}_1^{\top}\mathbf{E}_1)) \\ 
+&= \exp\Big(\frac{1}{2}\mathbf{t}^{\top}\mathsf{\Sigma}\,\mathbf{t}+\mathbf{t}^{\top}\boldsymbol{\mu}\Big)
+\exp\Big(\frac{1}{2}\mathbf{t}_1^{\top}\mathsf{\Gamma}_{11}\,\mathbf{t}_1\Big) 
+=  \exp\Big(\frac{1}{2}\mathbf{t}^{\top}(\mathsf{\Sigma} + \mathsf{\Gamma})\,\mathbf{t}+\mathbf{t}^{\top}\boldsymbol{\mu}\Big).
+\end{align*}
+Employing the uniquness theorem completes the proof.
+\end{prf}
+
 
 \section{Gaussian Process}
  A Gaussian Process (GP) is a special Stochastic Process (SP). Before defining what a GP is, we start by defining an SP.
@@ -641,7 +790,7 @@ For simplicity in our calculations, let us assume that the mean function of the 
 \begin{defn}
 The Radial Basis Function (RBF) or the Squared Exponential (SE) kernel is defined as
 \begin{equation*}
-\kappa(\mathbf{x}_i,\mathbf{x}_j) = \sigma_y \exp \Big(-\frac{1}{2\ell^2} \lVert\mathbf{x}_i-\mathbf{x}_j\rVert^2\Big),
+\kappa(\mathbf{x},\mathbf{x}') = \sigma_y \exp \Big(-\frac{1}{2\ell^2} \lVert\mathbf{x}-\mathbf{x}'\rVert^2\Big),
 \eqnum
 \label{eq:RBF}
 \end{equation*}
@@ -701,7 +850,7 @@ which is usually seen as
 \text{posterior} = \frac{\text{likelihood} \times \text{prior}}{\text{marginal likelihood or evidence}},
 \eqnum
 \end{equation*}
-whose interpretation is that our prior believes combined with our observations (likelihood) construct our posterior predictions. Eq. \eqref{eq:GP:posterior} is all we need for prediction. According to this equation, the posterior mean is a linear function of the observed targets $\mathbf{y}_1$, while the posterior covariance matrix is constant. Fig. \ref{fig:prior:posterior} summarizes our achievements so far.
+whose interpretation is that our prior believes combined with our observations (likelihood) construct our posterior predictions. \cref{eq:GP:posterior} is all we need for prediction. According to this equation, the posterior mean is a linear function of the observed targets $\mathbf{y}_1$, while the posterior covariance matrix is constant. Fig. \ref{fig:prior:posterior} summarizes our achievements so far.
 \begin{figure}[t!]
 \centering
 \includegraphics[width=12cm]{figs/prior-posterior.png}
@@ -709,20 +858,13 @@ whose interpretation is that our prior believes combined with our observations (
 \label{fig:prior:posterior}
 \end{figure}
 
-\subsubsection{Noisy Prediction}
-It is typical for more realistic modelling situations that we do not have access to function values themselves, but only noisy versions of them. Consequenlty, it is reasonabe to write
+\subsubsection{Noisy Prediction}\label{sec:Noisy:Pred}
+It is typical for more realistic modelling situations that we do not have access to function values themselves, but only noisy versions of them. Consequenlty, it is reasonable to write
 \begin{equation*}
-\mathbf{Z}_{1} = \mathbf{Y}_{1} + \boldsymbol{\mathcal{E}},
+\mathbf{Z}_{1} = \mathbf{Y}_{1} + \mathbf{E}_1
 \eqnum
 \end{equation*}
-where $\boldsymbol{\mathcal{E}}\in\mathbb{R}^n$ is a random noise vector. Assume that $\mathbf{Y}_1$ and $\boldsymbol{\mathcal{E}}$ are independent random vectors and that the noise random vector is Gaussian $p_{\boldsymbol{\mathcal{E}}}(\boldsymbol{\epsilon})=\mathcal{N}(\boldsymbol{\epsilon}; \mathbf{0}, \sigma_{\epsilon}\mathsf{I})$. It then follows that
- \begin{align*}
- \mathbb{E}(Z_{1,i}) &=  \mathbb{E}(Y_{1,i}) +  \mathbb{E}(\mathcal{E}_{1,i}) = 0 + 0 = 0, \\
- \cov(Z_{1,i},Z_{1,j}) &=  \cov(Y_{1,i},Y_{1,j}) +  \cov(\mathcal{E}_{i},\mathcal{E}_{j}) + 2 \cov(Y_{1,i},\mathcal{E}_{j}) = 
- \kappa(\mathbf{x}_{1,i}, \mathbf{x}_{1,j}) + \sigma_{\epsilon}^2\delta_{ij},
- \eqnum
- \end{align*}
-where $\delta_{ij}$ is the Kronecker's delta. The first line follows from the linearity of expectation and the second line follows from bilinearity of the covariance and independence of $\mathbf{Y}_1$ and $\boldsymbol{\mathcal{E}}$. Futhermore, with a little bit of work, it can be shown that the associated joint PDF will be \cite[Sectoin 4.3]{Murphy2012}
+where $\mathbf{E}_1$ is a random noise vector on the observed data. Assume that $\mathbf{E}_1$ is independent of random vectors $\mathbf{Y}_1, \mathbf{Y}_2$ and so independent of $\mathbf{Y}$. Furthermore, suppose that the noise is normal with the PDF $p_{\mathbf{E}_1}(\boldsymbol{\epsilon})=\mathcal{N}(\boldsymbol{\epsilon}; \mathbf{0}, \sigma_{\epsilon}^2\mathsf{I})$. We can write $(\mathbf{Z}_1, \mathbf{Z}_2) = (\mathbf{Y}_1, \mathbf{Y}_2) + (\mathbf{E}_1, \mathbf{0}_m)$, or more compactly $\mathbf{Z} = \mathbf{Y} + \mathbf{E}$. By \cref{eq:GP:joint}, we know that $\mathbf{Y}$ is a normal random vector.  Using \cref{lem:noise}, we conclude that $\mathbf{Z}$ is also normal and its PDF is given by \cref{eq:PDF:noise}. Considering that $\mathbf{Z}_2=\mathbf{Y_2}$, the PDF of $\mathbf{Z}=(\mathbf{Z}_1, \mathbf{Y}_2)$ is
 \begin{equation*}
 p_{\mathbf{Z}_{1}, \mathbf{Y}_{2}}(\mathbf{z}_{1}, \mathbf{y}_{2}) =
 \mathcal{N} \left(
@@ -818,7 +960,7 @@ Noting that $\mathsf{K}+\sigma_{\epsilon}^2\mathsf{I}$ is SPD, using the Cholesk
 \State \Return ($\mu_{2|1}$, $\sigma_{2|1}^2$)
 \end{algorithmic}
 \end{algorithm}
-Using \cref{eq:GP:posterior:alg}, Algorithm \ref{alg:GP} addresses a simple method for calculating the predictive mean, variance, and hence the PDF in \eqref{eq:GP:posterior:single}.  It should be noted that we avoid computing the inverse directly as it is considered problematic from a numerical perpective \cite[Section 4.7]{Gill1991}. The main work is to compute the Cholesky decomposition, which takes $\mathcal{O}(\frac{1}{6}n^3)$ time. Solving the upper and lower-triangular linear systems in lines 14 and 15 takes $\mathcal{O}(\frac{1}{2}n^2)$ time. The dot produtcs in lines 16 and 19  and the matrix and vector sums in lines 7 and 19 requires $\mathcal{O}(n)$ time. Assuming that we use an SE kernel (RBF), calculating $\mathsf{K}$ takes a work of $\mathcal{O}(n^2d)$ and calculating $\mathbf{k}$ requires $\mathcal{O}(nd)$. Summing all these up, the running time $T(n,d)$ of the GP algorithm is of order
+Using \cref{eq:GP:posterior:alg}, Algorithm \ref{alg:GP} addresses a simple method for calculating the predictive mean, variance, and hence the PDF in \cref{eq:GP:posterior:single}.  It should be noted that we avoid computing the inverse directly as it is considered problematic from a numerical perpective \cite[Section 4.7]{Gill1991}. The main work is to compute the Cholesky decomposition, which takes $\mathcal{O}(\frac{1}{6}n^3)$ time. Solving the upper and lower-triangular linear systems in lines 14 and 15 takes $\mathcal{O}(\frac{1}{2}n^2)$ time. The dot produtcs in lines 16 and 19  and the matrix and vector sums in lines 7 and 19 requires $\mathcal{O}(n)$ time. Assuming that we use an SE kernel (RBF), calculating $\mathsf{K}$ takes a work of $\mathcal{O}(n^2d)$ and calculating $\mathbf{k}$ requires $\mathcal{O}(nd)$. Summing all these up, the running time $T(n,d)$ of the GP algorithm is of order
 \begin{equation*}
 T(n,d) \in \mathcal{O}\Big(\frac{1}{6}n^3+n^2d+\frac{3}{2}n^2+nd+n\Big),
 \eqnum
@@ -833,7 +975,7 @@ showing a cubic time complexity in dataset size for the GP algorithm.
 In order to make predication at different test points $\mathbf{x}_{2, l}$, you need to run \cref{alg:GP} for $l=1,\dots,m$, where $m$ is the number of test points. In order to make this more efficient, pay attention that the lines 2-7 and 14-15 does not depend on $\mathbf{x}_{2, l}$ so you can do their calculations once and employ it at every iteration.
 \end{rem}
 \subsection{Kernels and Hyperparameters}
-Typically, the kernel functions that we use will have some free parameters, known as hyperparameters that are not determined during the learning process. According to eqs. \eqref{eq:RBF} and \eqref{eq:GP:posterior:single}, the hyperparameters for a noisy GP prediction with the SE kernel are the length-scale $\ell$, the signal variance $\sigma_y$, and the noise variance $\sigma_{\epsilon}$.  The hyperparameter $\sigma_y$ controls the amplitude of the covariance between the random variables $f(\mathbf{x})$ and $f(\mathbf{x}')$. $\sigma_{\epsilon}$ determines the amplitude of the variance of the noise $\mathcal{E}_i$. The hyperparameter $\ell$ determines a neighborhood radius around an input point $\mathbf{x}$ such that for every other input point $\mathbf{x}'$ lying in that neighborhood the corresponding random variables $f(\mathbf{x})$ and $f(\mathbf{x}')$ have a high correlation. Fig. \ref{fig:length:scale} illustrates the effect of this hyperparameter on the predictive distribution. The overall message of the figure is that the hyperparameters can significantly affect the posterior distribution. This gives rise to the question of how should we choose these hyperparameters. In the following, we address two methods for tunning hyperparameters, but this can be studied in more depth by consulting the Bible of GPs \cite[Chapter 5]{Rasmussen2006}.
+Typically, the kernel functions that we use will have some free parameters, known as hyperparameters that are not determined during the learning process. According to Eqs. \eqref{eq:RBF} and \eqref{eq:GP:posterior:single}, the hyperparameters for a noisy GP prediction with the SE kernel are the length-scale $\ell$, the signal variance $\sigma_y$, and the noise variance $\sigma_{\epsilon}$.  The hyperparameter $\sigma_y$ controls the amplitude of the covariance between the random variables $f(\mathbf{x})$ and $f(\mathbf{x}')$. $\sigma_{\epsilon}$ determines the amplitude of the variance of the noise $\mathcal{E}_i$. The hyperparameter $\ell$ determines a neighborhood radius around an input point $\mathbf{x}$ such that for every other input point $\mathbf{x}'$ lying in that neighborhood the corresponding random variables $f(\mathbf{x})$ and $f(\mathbf{x}')$ have a high correlation. Fig. \ref{fig:length:scale} illustrates the effect of this hyperparameter on the predictive distribution. The overall message of the figure is that the hyperparameters can significantly affect the posterior distribution. This gives rise to the question of how should we choose these hyperparameters. In the following, we address two methods for tunning hyperparameters, but this can be studied in more depth by consulting the Bible of GPs \cite[Chapter 5]{Rasmussen2006}.
 \begin{figure}[t!]
 \centering
 \includegraphics[width=17cm]{figs/length-scale.png}
@@ -861,7 +1003,7 @@ To summarize, you should consider discrete values for each hyperparameter and co
 deviation is chosen to be $\sigma_y^2 = 1$ for a dataset of 7 observations shown by + signs in the other two figures. There are two local optima, indicated with + signs in the left figure. The middle figure shows the function corresponding to the lower left local maximum that has the hyperparameters $(\ell, \sigma_{\epsilon}^2)=(1, 0.2)$ and is indeed the global maximum. This is quite \textit{wiggly} and has low noise and short length-scale. The function corresponding to the top right local maximum has the hyperparameters $(\ell, \sigma_{\epsilon}^2)=(10, 0.8)$. This is quite smooth and has high noise and long length-scale \cite[Section 5.4.1]{Rasmussen2006}. With only 7 data points, there is not enough evidence to confidently decide which is more reasonable, although the more oscillating model (middle figure) has a marginal likelihood that is about 60 percent higher than the other model (right figure)\cite[Section 15.2.4]{Murphy2012}.}
 \label{fig:marginal:likelihood}
 \end{figure}
-In this method, we look for those hyperparameters that maximize the probability of seeing the training data, i.e. maximizing the marginal likelihood (ML) $p_{\mathbf{Z}_1}(\mathbf{z}_1)$. This is indeed based on the \textbf{frequentist} view of statistics. From \eqref{eq:GP:noise:joint}, we know that
+In this method, we look for those hyperparameters that maximize the probability of seeing the training data, i.e. maximizing the marginal likelihood (ML) $p_{\mathbf{Z}_1}(\mathbf{z}_1)$. This is indeed based on the \textbf{frequentist} view of statistics. From \cref{eq:GP:noise:joint}, we know that
 \begin{equation*}
 p_{\mathbf{Z}_1}(\mathbf{z}_1) = 
 \mathcal{N}(\mathbf{z}_1; \mathbf{0}, \mathsf{\Sigma}+\sigma_{\epsilon}\mathsf{I}) = 
@@ -875,9 +1017,9 @@ where we have used the definition $\mathsf{K}_z:= \mathsf{K}+\sigma_{\epsilon}^2
 \eqnum
 \label{eq:marginal}
 \end{equation}
-where the second equality follows because the natural logrithm is an strictly increasing function and does not change the optimizer. The term \textit{marginal} refer to the fact that the likelihood $p_{\mathbf{Z}_1}(\mathbf{z}_1;\theta)$ can be obtained by perfoming marginalization on the PDF given in \eqref{eq:GP:noise:joint}. This is sometimes refered as \textbf{emprical Bayes} since pure Baysians believe that this method is fallacious. They argue that when we solve the optimization problem in \eqref{eq:marginal} then the hyperparameters $\boldsymbol{\theta}$ will depend on the seen data $\mathbf{y}_1$; however, all of our calculation was based on the fact that they are independent of the observed data \cite[Lecture 9]{Freitas2013}. For this reason, more complicated methods such as Monte Carlo (MC) methods have been developed to optimize the hyperparametrs \cite[Section 45.5]{MacKay2003}. With this in mind, ML is usually done in practice and the numerical results are satisfactory. 
+where the second equality follows because the natural logrithm is an strictly increasing function and does not change the optimizer. The term \textit{marginal} refer to the fact that the likelihood $p_{\mathbf{Z}_1}(\mathbf{z}_1;\theta)$ can be obtained by perfoming marginalization on the PDF given in \cref{eq:GP:noise:joint}. This is sometimes refered as \textbf{emprical Bayes} since pure Baysians believe that this method is fallacious. They argue that when we solve the optimization problem in \cref{eq:marginal} then the hyperparameters $\boldsymbol{\theta}$ will depend on the seen data $\mathbf{y}_1$; however, all of our calculation was based on the fact that they are independent of the observed data \cite[Lecture 9]{Freitas2013}. For this reason, more complicated methods such as Monte Carlo (MC) methods have been developed to optimize the hyperparametrs \cite[Section 45.5]{MacKay2003}. With this in mind, ML is usually done in practice and the numerical results are satisfactory. 
 
-To solve the nonlineaer unconstrained optimization problem in \cref{eq:marginal}, one needs to calculate the gradient. Feeding the result into any gradient solver for such problems could find the solution. According to \eqref{eq:GP:noise:joint}, natural logarithm of the ML (log-ML) will be
+To solve the nonlineaer unconstrained optimization problem in \cref{eq:marginal}, one needs to calculate the gradient. Feeding the result into any gradient solver for such problems could find the solution. According to \cref{eq:GP:noise:joint}, natural logarithm of the ML (log-ML) will be
 \begin{equation*}
 \log p_{\mathbf{Z}_1}(\mathbf{z}_1;\theta) = 
 \log\mathcal{N}(\mathbf{z}_1;\mathbf{0}, \mathsf{K}_z) =
@@ -910,9 +1052,9 @@ Using \cref{eq:matrix:der}, computing the gradient of log-ML in \cref{eq:ML:log}
 \eqnum
 \label{eq:ML:log:grad}
 \end{align*}
-where we used the fact that the trace of a scalar equals the scalar itself along with the linearity of the trace and the general identity $\tr(\mathsf{A}\mathsf{B})=\tr(\mathsf{B}\mathsf{A})$. The computational cost for the ML in \eqref{eq:ML:log:grad} is dominated by computing the inverse $\mathsf{K}_z^{-1}$. More specifically, since $\mathsf{K}_z$ is SPD, its inverse can be computed by first calculating the Cholesky decomposition and solving $n$ resulting upper- and lower-triangular linear systems, which takes a work of $\mathcal{O}(n^3)$.
+where we used the fact that the trace of a scalar equals the scalar itself along with the linearity of the trace and the general identity $\tr(\mathsf{A}\mathsf{B})=\tr(\mathsf{B}\mathsf{A})$. The computational cost for the ML in \cref{eq:ML:log:grad} is dominated by computing the inverse $\mathsf{K}_z^{-1}$. More specifically, since $\mathsf{K}_z$ is SPD, its inverse can be computed by first calculating the Cholesky decomposition and solving $n$ resulting upper- and lower-triangular linear systems, which takes a work of $\mathcal{O}(n^3)$.
 
-Fig. \ref{fig:marginal:likelihood} illustrates an example of finiding the optimal values for hyperparameters $\boldsymbol{\theta}=(\ell, \sigma_{\epsilon})^{\top}$ of a GP model with an SE kernel. We observe that there may exist several local optimums as the marginal likelihood is not a convex function.
+Fig. \ref{fig:marginal:likelihood} illustrates an example of finiding the optimal values for hyperparameters $\boldsymbol{\theta}=(\ell, \sigma_{\epsilon})$ of a GP model with an SE kernel. We observe that there may exist several local optimums as the marginal likelihood is not a convex function.
 
 \subsubsection{Constructing New Kernels}
 As described earlier, the power of GP lies in the choice of the kernel function. This property allows us to introduce domain knowledge into the process and lends GPs their flexibility to capture trends in the training data. For example, by choosing a suitable length-scale for the RBF kernel, we can control how smooth and oscillating the resulting function will be. A big benefit that kernels provide is that they can be combined together, resulting in a more specialized kernel. The decision of which kernel to use is highly dependent on prior knowledge about the data, e.g. if certain characteristics are expected \cite{Gortler2019}.
@@ -934,6 +1076,7 @@ For the proof of this theorem, a wide range of kernel functions, and other possi
 \eqnum
 \end{align*}
 where $(\ell, \sigma_y, p)$ are the hyperparameters of the periodic kernel and $(\sigma_b, \sigma_y, c)$ are hyperparameters of the linear kernel. For more general forms of these kernel functions in higher dimensional input spaces see \cite[Section 45.4]{MacKay2003}.
+
 \subsection{A Real World Example}
 Here, we mention an interesting real world example of GPs in action. The computer graphics and animation fields are filled with applications that require the setting of tricky parameters. In many cases, the models are complex and the parameters are unintuitive for non-experts. \citeauthor{Brochu2010} \cite{Brochu2010} present an optimization method for setting parameters of a procedural fluid animation system by showing the user examples of different parametrized animations and asking for feedback. They simulate the fluid flow by taking the curl of a vector valued potential function which has several technical parameters. In this example, the the aforementioned parameters are the inputs $\mathbf{x}$ and the targets $\mathbf{y}$ are the feedbacks of the user and some previous default data. By introducing an \textbf{active learning} method, they employ the Bayesian technique of bringing in prior belief based on previous runs of the system and expert knowledge to assist users find good parameter settings in as few steps as possible. At the heart of the machinary they have produced, lies the GP introduced in this tutorial. The main benefit is that the GP helps construct an efficient \textbf{explore and exploit} strategy in the input space based on the distribution of uncertainty in that space \cite[Lecture 9]{Freitas2013}. Watch the video of the \textbf{interactive interface} they have created to help users create animations without taking the burdon of adjusting parameters manually \cite{Brochu2010Animation}. Indeed, this idea is not restericted to computer graphics field and can be employed anywhere else that requires the adjusment of techincal parameters.
 
@@ -952,7 +1095,6 @@ The main drawback of GPs is their $\mathcal{O}(n^3)$ time complexity, which make
 I am happy that you have read this so far, showing that you are serious about understanding GPs and machine learning. I tried to write an easy-to-follow and at the same time rigorous introduction to GPs and I hope that it appealed to you. If you liked this tutorial, please give the \href{https://github.com/Hosein-Rahnama/Gaussian-Processes.git}{GitHub repository} of this document a star. Futhermore, you are more than welcomed to report any errors by opening an issue or to suggest further improvements by making pull requests on the repository.
 
 
-\newpage
 \section{References}
 \printbibliography[heading=none]
 
