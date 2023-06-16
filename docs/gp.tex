@@ -275,7 +275,10 @@ which implies invertibility of $\mathsf{R}$ and $\mathsf{C}$. Moreover, matrix $
 \begin{bmatrix}
 \mathsf{I_n} & \mathsf{0} \\
 -\mathsf{V}\mathsf{A}^{-1} & \mathsf{I_m}
-\end{bmatrix} \\ &=
+\end{bmatrix} 
+\eqnum 
+\label{eq:MIL:decomposition}
+\\ &=
 \begin{bmatrix}
 \mathsf{A}^{-1} & -\mathsf{A}^{-1}\mathsf{U}(\mathsf{M}/\mathsf{A})^{-1} \\
 \mathsf{0} & (\mathsf{M}/\mathsf{A})^{-1}
@@ -315,9 +318,14 @@ This is well known as the \textbf{Sherman-Morrison-Woodbury} formula. Next, let 
 \mathsf{\Sigma}^{-1} - \mathsf{\Sigma}^{-1}\mathsf{X}(\mathsf{I}_m+\mathsf{X}^{\top}\mathsf{\Sigma}^{-1}\mathsf{X})^{-1}\mathsf{X}^{\top}\mathsf{\Sigma}^{-1},
 \eqnum
 \end{equation*}
-where the left hand side (LHS) requires the inversion of an $n\times n$ matrix, while the RHS requires the inversion of an $m\times m$ matrix. When $n \gg m$, it is desirable to use the RHS formulation for calculations instead of the LHS. 
+where the left hand side (LHS) requires the inversion of an $n\times n$ matrix, while the RHS requires the inversion of an $m\times m$ matrix. When $n \gg m$, we use the RHS formulation for calculations instead of the LHS. 
 \end{exmp}
-
+\begin{cor}\label{cor:MIL:SPD}
+If the partitioned matrix $\mathsf{M}\in\mathbb{R}^{n+m,n+m}$ is SPD, then its Schur complements are SPD.
+\end{cor}
+\begin{prf}
+Employ the notation in the proof of \cref{lem:MIL}. Since $\mathsf{M}$ is SPD, we have $\mathsf{V}=\mathsf{U}^{\top}$, which implies that $\mathsf{R}=\mathsf{C}^{\top}$. Consequently, we have $\mathsf{C}^{\top}\mathsf{M}\mathsf{C}=\mathsf{D}$. Invertibility of $\mathsf{C}$ garauntees that $\mathsf{C}^{\top}\mathsf{M}\mathsf{C}$ is SPD. This means that $\mathsf{D}$ is SPD, which in turn implies that $\mathsf{M}/\mathsf{A}$ is SPD. The proof for the other Schur complement is similar.
+\end{prf}
 \subsection{Univariate Gaussian Distribution}
 One of most widely used distributions in statistics and machine learning is the Gaussian or normal distribution. In this subsection, we address how one can sample from a univariate Gaussian distribution.
 \begin{defn}
@@ -449,6 +457,7 @@ p_{\mathbf{X}}(\mathbf{x}) = \mathcal{N}(\mathbf{x};\boldsymbol{\mu},\mathsf{\Si
 \frac{1}{\sqrt{\det2\pi\mathsf{\Sigma}}}
 \exp\Big(-\frac{1}{2}(\mathbf{x} - \boldsymbol{\mu})^{\top}\mathsf{\Sigma}^{-1}(\mathbf{x} - \boldsymbol{\mu})\Big),
 \eqnum
+\label{eq:RV:N:PDF}
 \end{equation*}
 where $\mathbf{x}, \boldsymbol{\mu} \in \mathbb{R}^m$ and $\mathsf{\Sigma} \in \mathbb{R}^{m,m}$ is SPD. The distribution is determined by the vector $\boldsymbol{\mu}$ and matrix $\mathsf{\Sigma}$. 
 \end{defn}
@@ -498,77 +507,6 @@ p_{\mathbf{Z}}(\mathbf{z}) &= |\det\mathsf{J}(h^{-1})(\mathbf{z})| \,\, p_{\math
 \end{align*}
 showing that $\mathbf{Z}$ is standard normal. The proof for the other direction is similar.
 \end{prf}
-\begin{thm}[Marginalization and Conditioning]\label{thm:MVN:MC}
-Suppose $\mathbf{Y}\sim\mathcal{N}(\mathcal{\mathbf{y}; \boldsymbol{\mu}, \mathsf{\Sigma}})$ is jointly Gaussian and is partitioned in two parts with dimensions $m$ and $n$, respectively. We have
-\begin{equation}
-\mathbf{Y} =
-\begin{bmatrix}
-\mathbf{Y}_1 \\
-\mathbf{Y}_2
-\end{bmatrix}, \qquad
-\boldsymbol{\mu} = 
-\begin{bmatrix}
-\boldsymbol{\mu_1} \\
-\boldsymbol{\mu_2}
-\end{bmatrix}, \qquad
-\mathsf{\Sigma} = 
-\begin{bmatrix}
-\mathsf{\Sigma_{11}} & \mathsf{\Sigma_{12}} \\
-\mathsf{\Sigma_{21}} & \mathsf{\Sigma_{22}}
-\end{bmatrix},
-\end{equation}
-where $\boldsymbol{\mu}_1\in\mathbb{R}^n$, $\boldsymbol{\mu}_2\in\mathbb{R}^m$, $\mathsf{\Sigma}_{11}\in\mathbb{R}^{n,n}$, $\mathsf{\Sigma}_{22}\in\mathbb{R}^{m,m}$, $\mathsf{\Sigma}_{21} = \mathsf{\Sigma}_{12}^{\top}\in\mathbb{R}^{m,n}$. Then, the marginal PDFs are given by
-\begin{align*}
-p_{\mathbf{Y}_1}(\mathbf{y}_1) &= \int_{\mathbf{y}_1\in\mathbb{R}^n}p_{\mathbf{Y}_1,\mathbf{Y}_2}(\mathbf{y}_1, \mathbf{y}_2)\df \mathbf{y}_2 = \mathcal{N}(\mathbf{y}_1; \boldsymbol{\mu}_1, \mathsf{\Sigma}_{11}), \\
-p_{\mathbf{Y}_2}(\mathbf{y}_2) &= \int_{\mathbf{y}_2\in\mathbb{R}^m}p_{\mathbf{Y}_1,\mathbf{Y}_2}(\mathbf{y}_1, \mathbf{y}_2)\df \mathbf{y}_1 = \mathcal{N}(\mathbf{y}_2; \boldsymbol{\mu}_2, \mathsf{\Sigma}_{22}),
-\eqnum
-\label{eq:MVN:marg}
-\end{align*}
-and the conditional PDF is given by
-\begin{align*}
-p_{\mathbf{Y}_1|\mathbf{Y}_2}(\mathbf{y}_1|\mathbf{y}_2) &= 
-\frac{p_{\mathbf{Y}_1,\mathbf{Y}_2}(\mathbf{y}_1,\mathbf{y}_2)}{p_{\mathbf{Y}_2}(\mathbf{y}_2)} = \mathcal{N}(\mathbf{y}_1;\boldsymbol{\mu}_{1|2},\mathsf{\Sigma}_{1|2}), \\
-p_{\mathbf{Y}_2|\mathbf{Y}_1}(\mathbf{y}_2|\mathbf{y}_1) &= 
-\frac{p_{\mathbf{Y}_2,\mathbf{Y}_1}(\mathbf{y}_2,\mathbf{y}_1)}{p_{\mathbf{Y}_1}(\mathbf{y}_1)} = \mathcal{N}(\mathbf{y}_2;\boldsymbol{\mu}_{2|1},\mathsf{\Sigma}_{2|1}),
-\eqnum
-\end{align*}
-with its mean vector and covariance matrix obtained as
-\begin{align*}
-\boldsymbol{\mu}_{1|2} &= \boldsymbol{\mu}_1 + \mathsf{\Sigma}_{12}\mathsf{\Sigma}_{22}^{-1}(\mathbf{y}_2-\boldsymbol{\mu}_2), \qquad
-\mathsf{\Sigma}_{1|2} = \mathsf{\Sigma}_{11} - \mathsf{\Sigma}_{12} \mathsf{\Sigma}_{22}^{-1} \mathsf{\Sigma}_{21}, \\
-\boldsymbol{\mu}_{2|1} &= \boldsymbol{\mu}_2 + \mathsf{\Sigma}_{21}\mathsf{\Sigma}_{11}^{-1}(\mathbf{y}_1-\boldsymbol{\mu}_1), \qquad
-\mathsf{\Sigma}_{2|1} = \mathsf{\Sigma}_{22} - \mathsf{\Sigma}_{21} \mathsf{\Sigma}_{11}^{-1} \mathsf{\Sigma}_{12},
-\eqnum
-\label{eq:MVN:cond}
-\end{align*}
-showing that Gaussian PDFs are closed under marginalization and conditioning.
-\end{thm}
-\begin{prf}
-The proof of this theorem is lengthy. For a detailed treatment see \cite{Do2009}. However, we mention an outline of the proof. To obtain the relation for marginals or conditionals carry out the following steps
-\begin{enumerate}[noitemsep]
-\item Write the integral form of the marginal and the algebraic expression of conditional density explicitly.
-\item Rewrite the integral and the expression by partitioning the precision matrix $\mathsf{\Lambda}=\mathsf{\Sigma}^{-1}$.
-\item Use a completion-of-squares technique to write the exponents in the integral and  expression in terms of quadratic forms for $\mathbf{y}_1$ and $\mathbf{y}_2$ with the corresponding sub-blocks of $\mathsf{\Lambda}$.
-\item Use the matrix inversion lemma to determine sub-blocks of the precision matrix $\mathsf{\Lambda}$ in terms of the sub-blocks of the covariance matrix $\mathsf{\Sigma}$ and argue that the resulting density is Gaussian.
-\end{enumerate}
-This illustrates an outline for the proof.
-\end{prf}
-\newline
-\indent
-\cref{thm:MVN:MC} is central in working with MVN distributions. The recap is that if you want the marginals then just take corresponding block in the mean vector and covariance matrix of the joint distribution. To get the conditional, use \cref{eq:MVN:cond}. Note that the mean vector $\boldsymbol{\mu}_{1|2}$ in the conditional is linear in $\mathbf{y}_2$ and the covariance matrix $\mathsf{\Sigma}_{1|2}$ is just a constant matrix independent of $\mathbf{y}_2$. The same is true for the other conditional.
-\begin{rem}
-For a standard normal random vector $\mathbf{Z}=(Z_1,\dots,Z_m)^{\top}$, the PDF simplifies to
-\begin{align*}
-p_{\mathbf{Z}}(\mathbf{z}) 
-=  \frac{1}{\sqrt{2\pi}^m} \exp\Big(-\frac{1}{2}\mathbf{z}^{\top}\mathbf{z}\Big) 
-= \prod_{i=1}^{m}\frac{1}{\sqrt{2\pi}}\exp\Big(-\frac{1}{2}z_i^2\Big) 
-= \prod_{i=1}^{m}\mathcal{N}(z_i; 0, 1)=\prod_{i=1}^{m}p_{Z_i}(z_i),
-\eqnum
-\label{eq:Ran:Vec:SN:PDF}
-\end{align*}
-showing that in this case the PDF becomes the products of marginal PDFs. The last equality is a result of marginalizatoin property of MVNs stated in \cref{thm:MVN:MC}. Now, we are able to sample a random normal vector $\mathbf{X}\sim\mathcal{N}(\mathbf{x}; \boldsymbol{\mu}, \mathsf{\Sigma})$. For this purpose, we first calculate the Cholesky factor $\mathsf{L}$ of $\mathsf{\Sigma}$. Then, we note that $\mathbf{X} = \mathsf{L} \mathbf{Z} + \boldsymbol{\mu}$, where $\mathbf{Z}\sim\mathcal{N}(\mathbf{z}; \mathbf{0}, \mathsf{I})$. Now, we are able to sample the random strandard normal vector $\mathbf{Z}=(Z_1,\dots,Z_m)^{\top}$ since by the marginalization property of Gaussians we know that $Z_i\sim\mathcal{N}(z_i, 0, 1)$.
-\label{exmp:sample}
-\end{rem}
 \begin{defn}
 For a continuous random vector $\mathbf{X}$, define
 \begin{equation}
@@ -593,7 +531,7 @@ M_{\mathbf{Z}}(\mathbf{t}) = \mathbb{E}(\exp(\mathbf{t}^{\top}\mathbf{Z}))
 \end{align*}
 \end{exmp}
 Now, we shall mention some lemmas and theorems that enable us to take advantage of the power of MGFs for obtaining the PDF of a wide range of random vectos. Using the following lemma, we can compute the MGF for a normal random vector. 
-\begin{lem}
+\begin{lem}\label{lem:MGF:lin}
 Let $\mathbf{X}$ and $\mathbf{Y}$ be continous random vectors in $\mathbb{R}^n$ and  $\mathbb{R}^m$, respectively. Suppose that $\mathbf{Y} = \mathsf{A} \mathbf{X} + \mathbf{b} $ with $\mathsf{A}\in\mathbb{R}^{m,n}$ and $\mathbf{b}\in\mathbb{R}^m$. Then, their MGFs are related by
 \begin{equation*}
 M_{\mathbf{Y}}(\mathbf{t}) = \exp(\mathbf{t}^{\top}\mathbf{b}) M_{\mathbf{X}}(\mathsf{A}^{\top}\mathbf{t}).
@@ -623,10 +561,228 @@ M_{\mathbf{X}}(\mathbf{t})
 \label{eq:MGF:N}
 \end{align*}
 \end{exmp}
-We have the following important result. It shows that an MGF determines the PDF uniquely. That is, if two random vectors have the same MGF, then they are identically distributed \cite{Gharamani2019}.
+We have the following important result. It shows that an MGF determines the PDF uniquely. That is, if two random vectors have the same MGF, then they are identically distributed \cite{Linder2017}.
 \begin{thm}[Uniqueness of MGF]
-Let $\mathbf{X}$ and $\mathbf{Y}$ be two continuous random vectors. Then, $M_{\mathbf{X}}(\mathbf{t})=M_{\mathbf{Y}}(\mathbf{t})$ for all $\mathbf{t}\in B_{\mathbb{R}^m}(\mathbf{0}_m, r)$ with some $r>0$ if and only if  $p_{\mathbf{X}}(\mathbf{z})=p_{\mathbf{Y}}(\mathbf{z})$  for all $\mathbf{z}\in\mathbb{R}^m$.
+Let $\mathbf{X}$ and $\mathbf{Y}$ be two continuous random vectors. $M_{\mathbf{X}}(\mathbf{t})=M_{\mathbf{Y}}(\mathbf{t})$ for all $\mathbf{t}\in B_{\mathbb{R}^m}(\mathbf{0}_m, r)$ with some $r>0$ if and only if $F_{\mathbf{X}}(\mathbf{z})=F_{\mathbf{Y}}(\mathbf{z})$  for all $\mathbf{z}\in\mathbb{R}^m$. In other words, MGFs of two random vectors are equal in a neighborhood of the origin if and only if they have the same CDF. Furthremore, the CDFs are equal if and only if PDFs are equal almost everywhere.
 \end{thm}
+With the uniqueness thoerem in our arsenal, we can prove the marginalization property of MVNs easily.
+\begin{thm}[Marginalization]\label{thm:MVN:marg}
+Let $\mathbf{Y}=[Y_1,\dots,Y_n]^{\top}$ be a normal random vector with $p_{\mathbf{Y}}(\mathbf{y})=\mathcal{N}(\mathbf{y};\boldsymbol{\mu},\mathsf{\Sigma})$. Suppose that $I=\{i_1,\dots,i_r\}\subseteq\{1,\dots,n\}$ is an index set with $r\leq n$. Then, $\mathbf{X} =[Y_{i_1},\dots,Y_{i_r}]$ is a normal random vector with $p_{\mathbf{X}}(\mathbf{x})=\mathcal{N}(\mathbf{x};\mathsf{P}\boldsymbol{\mu},\mathsf{P}\mathsf{\Sigma}\mathsf{P}^{\top})$, where $\mathsf{P}\in\mathbb{R}^{r, n}$ is a permutation matrix given by $\mathsf{P}=[\mathbf{e}_{i_1},\dots,\mathbf{e}_{i_r}]^{\top}$ with $\mathbf{e}_i$ being the ith standard unit vector in $\mathbb{R}^n$. This shows that Gaussian PDFs are closed under marginalization.
+\end{thm}
+\begin{prf}
+Note that $\mathbf{X}=\mathsf{P}\mathbf{Y}$. Using \cref{lem:MGF:lin} with $\mathbf{b}=0$ and \cref{eq:MGF:N}, leads to
+\begin{align*}
+M_{\mathbf{X}}(\mathbf{t}) = M_{\mathbf{Y}}(\mathsf{P}^{\top}\mathbf{t})
+= \exp\Big(\frac{1}{2}(\mathsf{P}^{\top}\mathbf{t})^{\top}\mathsf{\Sigma}\,(\mathsf{P}^{\top}\mathbf{t})
++(\mathsf{P}^{\top}\mathbf{t})^{\top}\boldsymbol{\mu}\Big)
+= \exp\Big(\frac{1}{2}\mathbf{t}^{\top}(\mathsf{P}\mathsf{\Sigma}\mathsf{P}^{\top})\,\mathbf{t}
++\mathbf{t}^{\top}(\mathsf{P}\boldsymbol{\mu})\Big).
+\end{align*}
+The uniqueness theorem implies that $\mathbf{X}$ is a normal random vector with $p_{\mathbf{X}}(\mathbf{x})=\mathcal{N}(\mathbf{x};\mathsf{P}\boldsymbol{\mu},\mathsf{P}\mathsf{\Sigma}\mathsf{P}^{\top})$. 
+\end{prf}
+\begin{rem}
+Note that the components of $\mathsf{P}\boldsymbol{\mu}$ and $\mathsf{P}\mathsf{\Sigma}\mathsf{P}^{\top}$ are given by
+\begin{align*}
+[\mathsf{P}\boldsymbol{\mu}]_p &= [\mathsf{P}]_{p,\boldsymbol{.}}^{\top}\boldsymbol{\mu} 
+= \mathbf{e}_{i_p}^{\top}\boldsymbol{\mu} 
+= [\boldsymbol{\mu}]_{i_p}, \\
+[\mathsf{P}\mathsf{\Sigma}\mathsf{P}^{\top}]_{pq} &= [\mathsf{P}]_{p,\boldsymbol{.}}\mathsf{\Sigma}\,[\mathsf{P}^{\top}]_{\boldsymbol{.},q} 
+= \mathbf{e}_{i_p}^{\top}\mathsf{\Sigma}\,\mathbf{e}_{i_q}
+= [\mathsf{\Sigma}]_{i_pi_q},
+\end{align*}
+which means that if you want the marginal PDFs then just take corresponding block in the mean vector and covariance matrix of the joint PDF.
+\end{rem}
+\begin{exmp}
+Suppose $\mathbf{Y}\sim\mathcal{N}(\mathcal{\mathbf{y}; \boldsymbol{\mu}, \mathsf{\Sigma}})$ is jointly Gaussian. Consider the following partitions
+\begin{equation}
+\mathbf{Y} =
+\begin{bmatrix}
+\mathbf{Y}_1 \\
+\mathbf{Y}_2
+\end{bmatrix}, \qquad
+\boldsymbol{\mu} = 
+\begin{bmatrix}
+\boldsymbol{\mu_1} \\
+\boldsymbol{\mu_2}
+\end{bmatrix}, \qquad
+\mathsf{\Sigma} = 
+\begin{bmatrix}
+\mathsf{\Sigma}_{11} & \mathsf{\Sigma}_{12} \\
+\mathsf{\Sigma}_{21} & \mathsf{\Sigma}_{22}
+\end{bmatrix},
+\end{equation}
+where $\boldsymbol{\mu}_1\in\mathbb{R}^n$, $\boldsymbol{\mu}_2\in\mathbb{R}^m$, $\mathsf{\Sigma}_{11}\in\mathbb{R}^{n,n}$, $\mathsf{\Sigma}_{22}\in\mathbb{R}^{m,m}$, $\mathsf{\Sigma}_{21} = \mathsf{\Sigma}_{12}^{\top}\in\mathbb{R}^{m,n}$. By \cref{thm:MVN:marg}, if we take $I=\{1,\dots,n\}$ and  $I=\{n+1,\dots,n+m\}$, then the marginal PDFs are given by
+\begin{align*}
+p_{\mathbf{Y}_1}(\mathbf{y}_1) &:= \int_{\mathbf{y}_2\in\mathbb{R}^n}p_{\mathbf{Y}_1,\mathbf{Y}_2}(\mathbf{y}_1, \mathbf{y}_2)\df \mathbf{y}_2 = \mathcal{N}(\mathbf{y}_1; \boldsymbol{\mu}_1, \mathsf{\Sigma}_{11}), \\
+p_{\mathbf{Y}_2}(\mathbf{y}_2) &:= \int_{\mathbf{y}_1\in\mathbb{R}^m}p_{\mathbf{Y}_1,\mathbf{Y}_2}(\mathbf{y}_1, \mathbf{y}_2)\df \mathbf{y}_1 = \mathcal{N}(\mathbf{y}_2; \boldsymbol{\mu}_2, \mathsf{\Sigma}_{22}),
+\eqnum
+\label{eq:MVN:marg}
+\end{align*}
+For a \textit{lengthy} proof of this see \cite{Do2009} or \cite[Section 2.3.2]{Bishop2006}, which uses the integral definition of a marginal PDF.
+\end{exmp}
+\begin{rem}[Sampling]
+For a standard normal random vector $\mathbf{Z}=[Z_1,\dots,Z_m]^{\top}$, the PDF simplifies to
+\begin{align*}
+p_{\mathbf{Z}}(\mathbf{z}) 
+=  \frac{1}{\sqrt{2\pi}^m} \exp\Big(-\frac{1}{2}\mathbf{z}^{\top}\mathbf{z}\Big) 
+= \prod_{i=1}^{m}\frac{1}{\sqrt{2\pi}}\exp\Big(-\frac{1}{2}z_i^2\Big) 
+= \prod_{i=1}^{m}\mathcal{N}(z_i; 0, 1)=\prod_{i=1}^{m}p_{Z_i}(z_i),
+\eqnum
+\label{eq:RV:SN:PDF}
+\end{align*}
+showing that in this case the PDF becomes the products of marginal PDFs. The last equality is a result of marginalizatoin property of MVNs stated in \cref{thm:MVN:marg}. Now, we are able to sample a random normal vector $\mathbf{X}\sim\mathcal{N}(\mathbf{x}; \boldsymbol{\mu}, \mathsf{\Sigma})$. For this purpose, we first calculate the Cholesky factor $\mathsf{L}$ of $\mathsf{\Sigma}$. Then, we note that $\mathbf{X} = \mathsf{L} \mathbf{Z} + \boldsymbol{\mu}$, where $\mathbf{Z}\sim\mathcal{N}(\mathbf{z}; \mathbf{0}, \mathsf{I})$. We can also sample the strandard normal random vector $\mathbf{Z}=[Z_1,\dots,Z_m]^{\top}$ since by the marginalization property of Gaussians we know that $Z_i\sim\mathcal{N}(z_i, 0, 1)$.
+\label{exmp:sample}
+\end{rem}
+\begin{thm}[Conditioning]\label{thm:MVN:cond}
+Suppose $\mathbf{Y}\sim\mathcal{N}(\mathcal{\mathbf{y}; \boldsymbol{\mu}, \mathsf{\Sigma}})$ and consider the following partitions
+\begin{equation}
+\mathbf{Y} =
+\begin{bmatrix}
+\mathbf{Y}_1 \\
+\mathbf{Y}_2
+\end{bmatrix}, \qquad
+\boldsymbol{\mu} = 
+\begin{bmatrix}
+\boldsymbol{\mu_1} \\
+\boldsymbol{\mu_2}
+\end{bmatrix}, \qquad
+\mathsf{\Sigma} = 
+\begin{bmatrix}
+\mathsf{\Sigma}_{11} & \mathsf{\Sigma}_{12} \\
+\mathsf{\Sigma}_{21} & \mathsf{\Sigma}_{22}
+\end{bmatrix},
+\end{equation}
+where $\boldsymbol{\mu}_1\in\mathbb{R}^n$, $\boldsymbol{\mu}_2\in\mathbb{R}^m$, $\mathsf{\Sigma}_{11}\in\mathbb{R}^{n,n}$, $\mathsf{\Sigma}_{22}\in\mathbb{R}^{m,m}$, $\mathsf{\Sigma}_{21} = \mathsf{\Sigma}_{12}^{\top}\in\mathbb{R}^{m,n}$. Then, the conditional PDFs are
+\begin{align*}
+p_{\mathbf{Y}_1|\mathbf{Y}_2}(\mathbf{y}_1|\mathbf{y}_2) &:= 
+\frac{p_{\mathbf{Y}_1,\mathbf{Y}_2}(\mathbf{y}_1,\mathbf{y}_2)}{p_{\mathbf{Y}_2}(\mathbf{y}_2)} = \mathcal{N}(\mathbf{y}_1;\boldsymbol{\mu}_{1|2},\mathsf{\Sigma}_{1|2}), \\
+p_{\mathbf{Y}_2|\mathbf{Y}_1}(\mathbf{y}_2|\mathbf{y}_1) &:= 
+\frac{p_{\mathbf{Y}_2,\mathbf{Y}_1}(\mathbf{y}_2,\mathbf{y}_1)}{p_{\mathbf{Y}_1}(\mathbf{y}_1)} = \mathcal{N}(\mathbf{y}_2;\boldsymbol{\mu}_{2|1},\mathsf{\Sigma}_{2|1}),
+\eqnum
+\end{align*}
+with their mean vector and covariance matrix given by
+\begin{align*}
+\boldsymbol{\mu}_{1|2} &= \boldsymbol{\mu}_1 + \mathsf{\Sigma}_{12}\mathsf{\Sigma}_{22}^{-1}(\mathbf{y}_2-\boldsymbol{\mu}_2), \qquad
+\mathsf{\Sigma}_{1|2} = \mathsf{\Sigma}_{11} - \mathsf{\Sigma}_{12} \mathsf{\Sigma}_{22}^{-1} \mathsf{\Sigma}_{21}, \\
+\boldsymbol{\mu}_{2|1} &= \boldsymbol{\mu}_2 + \mathsf{\Sigma}_{21}\mathsf{\Sigma}_{11}^{-1}(\mathbf{y}_1-\boldsymbol{\mu}_1), \qquad
+\mathsf{\Sigma}_{2|1} = \mathsf{\Sigma}_{22} - \mathsf{\Sigma}_{21} \mathsf{\Sigma}_{11}^{-1} \mathsf{\Sigma}_{12},
+\eqnum
+\label{eq:MVN:cond}
+\end{align*}
+showing that Gaussian PDFs are closed under conditioning.
+\end{thm}
+\begin{prf}
+The idea is to factor $p_{\mathbf{Y}_1,\mathbf{Y}_2}(\mathbf{y}_1,\mathbf{y}_2)$ as $p_{\mathbf{Y}_1}(\mathbf{y}_1)p_{\mathbf{Y}_1|\mathbf{Y}_2}(\mathbf{y}_1|\mathbf{y}_2)$. Our main tool will be the matrix inversion lemma. Using \cref{eq:MIL:decomposition} that occured in the proof of \cref{lem:MIL}, we know that
+\begin{align*}
+\mathsf{\Sigma}^{-1} =
+\begin{bmatrix}
+\mathsf{\Sigma}_{11} & \mathsf{\Sigma}_{12} \\
+\mathsf{\Sigma}_{21} & \mathsf{\Sigma}_{22}
+\end{bmatrix}^{-1}
+&=
+\begin{bmatrix}
+\mathsf{I_n} & -\mathsf{\Sigma}_{11}^{-1}\mathsf{\Sigma}_{12} \\
+\mathsf{0} & \mathsf{I_m}
+\end{bmatrix}
+\begin{bmatrix}
+\mathsf{\Sigma}_{11}^{-1} & \mathsf{0} \\
+\mathsf{0} & (\mathsf{\Sigma}/\mathsf{\Sigma}_{11})^{-1}
+\end{bmatrix}
+\begin{bmatrix}
+\mathsf{I_n} & \mathsf{0} \\
+-\mathsf{\Sigma}_{21}\mathsf{\Sigma}_{11}^{-1} & \mathsf{I_m}
+\end{bmatrix} \\ 
+&=
+\begin{bmatrix}
+\mathsf{I_n} & \mathsf{0} \\
+-\mathsf{\Sigma}_{21}\mathsf{\Sigma}_{11}^{-1} & \mathsf{I_m}
+\end{bmatrix}^{\top}
+\begin{bmatrix}
+\mathsf{\Sigma}_{11}^{-1} & \mathsf{0} \\
+\mathsf{0} & (\mathsf{\Sigma}/\mathsf{\Sigma}_{11})^{-1}
+\end{bmatrix}
+\begin{bmatrix}
+\mathsf{I_n} & \mathsf{0} \\
+-\mathsf{\Sigma}_{21}\mathsf{\Sigma}_{11}^{-1} & \mathsf{I_m}
+\end{bmatrix} \\
+&= \mathsf{R}^{\top}\mathsf{D}^{-1}\mathsf{R}
+\end{align*}
+where we made use of the fact that $\mathsf{\Sigma}$ is symmetric so $\mathsf{\Sigma}_{11}^{\top}=\mathsf{\Sigma}_{11}$ and $\mathsf{\Sigma}_{12}^{\top} = \mathsf{\Sigma}_{21}$. Define $\mathbf{h}:=\mathbf{y}-\boldsymbol{\mu}$ and compute the quadratic form in the exponent of the PDF of $\mathbf{Y}$  to get
+\begin{align*}
+\mathbf{h}^{\top} \mathsf{\Sigma}^{-1} \mathbf{h} 
+&= \mathbf{h}^{\top} (\mathsf{R}^{\top}\mathsf{D}^{-1}\mathsf{R})\mathbf{h} 
+= (\mathsf{R}\mathbf{h})^{\top}\mathsf{D}^{-1}(\mathsf{R}\mathbf{h}) \\
+&=
+\begin{bmatrix}
+\mathbf{h}_1 \\
+\mathbf{h}_2-\mathsf{\Sigma}_{21}\mathsf{\Sigma}_{11}^{-1}\mathbf{h}_1
+\end{bmatrix}^{\top}
+\begin{bmatrix}
+\mathsf{\Sigma}_{11}^{-1} & \mathsf{0} \\
+\mathsf{0} & (\mathsf{\Sigma}/\mathsf{\Sigma}_{11})^{-1}
+\end{bmatrix}
+\begin{bmatrix}
+\mathbf{h}_1 \\
+\mathbf{h}_2-\mathsf{\Sigma}_{21}\mathsf{\Sigma}_{11}^{-1}\mathbf{h}_1
+\end{bmatrix}
+\\
+&= \mathbf{h}_1^{\top}\mathsf{\Sigma}_{11}^{-1}\mathbf{h}_1 +
+\big(\mathbf{h}_2-\mathsf{\Sigma}_{21}\mathsf{\Sigma}_{11}^{-1}\mathbf{h}_1\big)^{\top}
+(\mathsf{\Sigma}/\mathsf{\Sigma}_{11})^{-1}
+\big(\mathbf{h}_2-\mathsf{\Sigma}_{21}\mathsf{\Sigma}_{11}^{-1}\mathbf{h}_1\big).
+\eqnum
+\label{eq:cond:quad}
+\end{align*}
+The determinant term in the PDF of $\mathbf{Y}$ should also be simplified. For this purpose, use the determinant formula in \cref{lem:MIL} to get
+\begin{align*}
+\sqrt{\det2\pi\mathsf{\Sigma}} &= \sqrt{2\pi}^{n+m} \sqrt{\det\mathsf{\Sigma}}
+= \sqrt{2\pi}^{n+m} \sqrt{\det\mathsf{\Sigma}_{11}\det\mathsf{\Sigma}/\mathsf{\Sigma}_{11}} \\
+&= \big(\sqrt{2\pi}^{n}\sqrt{\det\mathsf{\Sigma}_{11}}\big)
+\big(\sqrt{2\pi}^{m}\sqrt{\det\mathsf{\Sigma}/\mathsf{\Sigma}_{11}}\big) \\
+&= \big(\sqrt{\det2\pi\mathsf{\Sigma}_{11}}\big)
+\big(\sqrt{\det2\pi\mathsf{\Sigma}/\mathsf{\Sigma}_{11}}\big)
+\eqnum
+\label{eq:cond:det}
+\end{align*}
+Next, substitute Eqs. \eqref{eq:cond:quad} and \eqref{eq:cond:det} into the PDF of $\mathbf{Y}$ to obtain
+\begin{align*}
+p_{\mathbf{Y}}(\mathbf{y}) &= p_{\mathbf{Y}_1,\mathbf{Y}_2}(\mathbf{y}_1,\mathbf{y}_2) \\
+&= \frac{1}{\sqrt{\det 2 \pi \mathsf{\Sigma}}} \exp\Big(-\frac{1}{2}\mathbf{h}^{\top}\mathsf{\Sigma}^{-1}\mathbf{h}\Big) \\
+&= \frac{1}{\sqrt{\det 2 \pi \mathsf{\Sigma}_{11}}} 
+\exp\Big(-\frac{1}{2}\mathbf{h}_1^{\top}\mathsf{\Sigma}_{11}^{-1}\mathbf{h}_1\Big) \\
+&\times \frac{1}{\sqrt{\det 2 \pi \mathsf{\Sigma}/\mathsf{\Sigma}_{11}}} 
+\exp\Big(-\frac{1}{2} \big(\mathbf{h}_2-\mathsf{\Sigma}_{21}\mathsf{\Sigma}_{11}^{-1}\mathbf{h}_1\big)^{\top}
+(\mathsf{\Sigma}/\mathsf{\Sigma}_{11})^{-1}
+\big(\mathbf{h}_2-\mathsf{\Sigma}_{21}\mathsf{\Sigma}_{11}^{-1}\mathbf{h}_1\big)\Big),
+\end{align*}
+which by using \cref{eq:MVN:marg}, a result of marginalization theorem, is actually equivalent to
+\begin{align*}
+p_{\mathbf{Y}_1,\mathbf{Y}_2}(\mathbf{y}_1,\mathbf{y}_2) &= 
+\mathcal{N}(\mathbf{y}_1; \boldsymbol{\mu}_1, \mathsf{\Sigma}_{11}) \,
+\mathcal{N}(\mathbf{y}_2; \boldsymbol{\mu}_2 + \mathsf{\Sigma}_{21}\mathsf{\Sigma}_{11}^{-1}(\mathbf{y}_1 - \boldsymbol{\mu}_1), 
+\mathsf{\Sigma}/\mathsf{\Sigma}_{11}) \\
+&= p_{\mathbf{Y}_1}(\mathbf{y}_1) \, \mathcal{N}(\mathbf{y}_2; \boldsymbol{\mu}_2 + \mathsf{\Sigma}_{21}\mathsf{\Sigma}_{11}^{-1}(\mathbf{y}_1 - \boldsymbol{\mu}_1), \mathsf{\Sigma}/\mathsf{\Sigma}_{11}) .
+\end{align*}
+Finally, using the definition of the conditional PDF gives the desired result
+\begin{equation*}
+p_{\mathbf{Y}_2|\mathbf{Y}_1}(\mathbf{y}_2|\mathbf{y}_1) := 
+\frac{p_{\mathbf{Y}_2,\mathbf{Y}_1}(\mathbf{y}_2,\mathbf{y}_1)}{p_{\mathbf{Y}_1}(\mathbf{y}_1)} = \mathcal{N}(\mathbf{y}_2; \boldsymbol{\mu}_2 + \mathsf{\Sigma}_{21}\mathsf{\Sigma}_{11}^{-1}(\mathbf{y}_1 - \boldsymbol{\mu}_1), \mathsf{\Sigma}/\mathsf{\Sigma}_{11}) .
+\end{equation*}
+To derive the formula for the other conditional, define a permuation matrix $\mathsf{P}=[\mathbf{e}_{n+1},\dots,\mathbf{e}_{n+m},\mathbf{e}_1,\dots,\mathbf{e}_{n}]^{\top}$ and let $\overbar{\mathbf{Y}} = \mathsf{P}\mathbf{Y}$. Applying the marginalization theorem gives $p_{\overbar{\mathbf{Y}}}(\overbar{\mathbf{y}}) = \mathcal{N}(\overbar{\mathbf{y}}; \overbar{\boldsymbol{\mu}}, \overbar{\mathsf{\Sigma}})$, where $\overbar{\boldsymbol{\mu}} = \mathsf{P}\boldsymbol{\mu}$ and $\overbar{\mathsf{\Sigma}} = \mathsf{P}\mathsf{\Sigma}\mathsf{P}^{\top}$. This implies that
+\begin{equation*}
+\begin{array}{cccc}
+\overbar{\mathbf{Y}}_1 = \mathbf{Y}_2, & \overbar{\mathbf{Y}}_2 = \mathbf{Y}_1, &
+\overbar{\boldsymbol{\mu}}_1 = \mathbf{\boldsymbol{\mu}}_2, &  \overbar{\mathbf{\boldsymbol{\mu}}}_2 = \mathbf{\boldsymbol{\mu}}_1, \\
+\overbar{\mathsf{\Sigma}}_{11} = \mathsf{\Sigma}_{22}, & \overbar{\mathsf{\Sigma}}_{22} = \mathsf{\Sigma}_{11}, &
+\overbar{\mathsf{\Sigma}}_{12} = \mathsf{\Sigma}_{21}, &\overbar{\mathsf{\Sigma}}_{21} = \mathsf{\Sigma}_{12},
+\end{array}
+\end{equation*}
+which is practically equivalent to interchanging the subscripts 1 and 2. At last, apply the result we obtained so far for conditioning to $p_{\overbar{\mathbf{Y}}}(\overbar{\mathbf{y}})=p_{\overbar{\mathbf{Y}}_1, \overbar{\mathbf{Y}}_2}(\overbar{\mathbf{y}}_1, \overbar{\mathbf{y}}_2)$. This completes the proof.
+\end{prf}
+\newline
+\indent
+Marginalization and conditioning are central in working with MVN distributions. The recap is that if you want the marginals then just take corresponding block in the mean vector and covariance matrix of the joint distribution. To get the conditional, use \cref{eq:MVN:cond}. Note that the mean vector $\boldsymbol{\mu}_{2|1}$ in the conditional is linear in $\mathbf{y}_1$ and the covariance matrix $\mathsf{\Sigma}_{2|1}$ is just a constant matrix independent of $\mathbf{y}_1$. The same is true for the other conditional.
+
 The uniqueness theorem along with the following theorem give us a powerful tool for determining the distribution of the sum of independent random vectors.
 \begin{thm}[MGF of Sums]\label{thm:MGF:sum}
 Let $\mathbf{X}_1,\dots,\mathbf{X}_k$ be independent random vectors and define $\mathbf{X}=\mathbf{X}_1+\dots+\mathbf{X}_k$. Then, MGF of $\mathbf{X}$ is given by
@@ -830,7 +986,7 @@ p_{\mathbf{Y}_{1}, \mathbf{Y}_{2}}(\mathbf{y}_{1}, \mathbf{y}_{2}) =
 \eqnum
 \label{eq:GP:joint}
 \end{equation*}
-To answer our original question, we use \cref{thm:MVN:MC} to compute $p_{\mathbf{Y}_2|\mathbf{Y}_1}(\mathbf{y}_2|\mathbf{y}_1)$ as below
+To answer our original question, we use \cref{thm:MVN:cond} to compute $p_{\mathbf{Y}_2|\mathbf{Y}_1}(\mathbf{y}_2|\mathbf{y}_1)$ as below
 \begin{equation*}
 p_{\mathbf{Y}_2|\mathbf{Y}_1}(\mathbf{y}_2|\mathbf{y}_1) = 
 \mathcal{N}(\mathbf{y}_2;\mathsf{\Sigma}_{21}\mathsf{\Sigma}_{11}^{-1}\mathbf{y}_1, \mathsf{\Sigma}_{22} - 
@@ -854,7 +1010,7 @@ whose interpretation is that our prior believes combined with our observations (
 \begin{figure}[t!]
 \centering
 \includegraphics[width=12cm]{figs/prior-posterior.png}
-\caption{The left figure shows three random functions drawn from a GP prior. The dots indicate values of $y_{2,i}$ that are actually generated. The right figure depicts three random functions drawn from a GP posterior as lines by joining a large number of evaluated pionts. Notice that the functions look smooth. The + signs are five noise free observation indicated. In both plots the shaded area represents the pointwise mean $\mu_{1|2}$ plus and minus $2\sigma_{1|2}$ known as the 95 percent \textbf{confidence region}. Pay attention to the fact that the variance vanishes rapidly near the observed data points and increases as we get away from them \cite{Rasmussen2006}.}
+\caption{The left figure shows three random functions drawn from a GP prior. The dots indicate values of $y_{2,i}$ that are actually generated. The right figure depicts three random functions drawn from a GP posterior as lines by joining a large number of evaluated pionts. Notice that the functions look smooth. The + signs are five noise free observation indicated. In both plots the shaded area represents the pointwise mean $\mu_{2|1}$ plus and minus $2\sigma_{2|1}$ known as the 95 percent \textbf{confidence region}. Pay attention to the fact that the variance vanishes rapidly near the observed data points and increases as we get away from them \cite{Rasmussen2006}.}
 \label{fig:prior:posterior}
 \end{figure}
 
@@ -985,24 +1141,12 @@ Typically, the kernel functions that we use will have some free parameters, know
 
 \subsubsection{Cross Validation}
 In this sub-section, we consider how to use methods of cross-validation (CV) for determining hyperparameters. The basic idea is to split the training set into two disjoint sets, one which is actually used for training, and the other, the \textbf{validation set}, which is used to monitor performance, as shown in \cref{fig:cross:validation}. The performance on the validation set is used as a measure for the \textbf{generalization error} and determining hyperparameters is done based on this.
-\begin{figure}[b!]
-\centering
-\includegraphics[width=9cm]{figs/cross-validation.png}
-\caption{The figure illustrates a $5$-fold cross validation \cite{sklearn}.}
-\label{fig:cross:validation}
-\end{figure}
+
 In practice, a drawback of this method is that only a fraction of the full data set can be used for training, and that if the validation set is small, the performance estimate obtained may have large variance. To minimize these problems, CV is almost always used in the $k$-\textbf{fold} setting. In $k$-fold CV, data is split into $k$ disjoint equally sized subsets. Validation is done on a single subset and training is done using the union of the remaining $k -1$ subsets, the entire procedure being repeated $k$ times, each time with a different subset for validation. Thus, a large fraction of the data can be used for training, and all cases appear as validation cases. The price is that $k$ models must be trained instead of one. Typical values for $k$ are in the range 3 to 10. An extreme case of $k$-fold cross-validation is obtained for $k = n$, the number of training data points, also known as \textbf{Leave-One-Out Cross-Validation} (LOO-CV). Often the computational cost of LOO-CV (training $n$ models) is high. Cross-validation can be used with any loss function. Although the \textbf{squared error loss} is by far the most common for regression \cite[Chapter 5]{Rasmussen2006}. 
 
 To summarize, you should consider discrete values for each hyperparameter and construct a \textbf{search grid} for each split shown in \cref{fig:cross:validation}. Then, you calculate the squared error loss for each point of the grid in a fixed split. Repeating this for all of the splits, you obtain $k$ different squared error loss for each point of the grid. Finally, you can choose that value of the hyperparameters that results in the minimum averaged squared error loss over all the $k$ values.
 
 \subsubsection{Marginal Likelihood}
-\begin{figure}[t!]
-\centering
-\includegraphics[width=17cm]{figs/marginal-likelihood.png}
-\caption{The left figure shows the marginal likelihood as a function of the hyperparameters $\ell$ and $\sigma_{\epsilon}$. Signal's standard
-deviation is chosen to be $\sigma_y^2 = 1$ for a dataset of 7 observations shown by + signs in the other two figures. There are two local optima, indicated with + signs in the left figure. The middle figure shows the function corresponding to the lower left local maximum that has the hyperparameters $(\ell, \sigma_{\epsilon}^2)=(1, 0.2)$ and is indeed the global maximum. This is quite \textit{wiggly} and has low noise and short length-scale. The function corresponding to the top right local maximum has the hyperparameters $(\ell, \sigma_{\epsilon}^2)=(10, 0.8)$. This is quite smooth and has high noise and long length-scale \cite[Section 5.4.1]{Rasmussen2006}. With only 7 data points, there is not enough evidence to confidently decide which is more reasonable, although the more oscillating model (middle figure) has a marginal likelihood that is about 60 percent higher than the other model (right figure)\cite[Section 15.2.4]{Murphy2012}.}
-\label{fig:marginal:likelihood}
-\end{figure}
 In this method, we look for those hyperparameters that maximize the probability of seeing the training data, i.e. maximizing the marginal likelihood (ML) $p_{\mathbf{Z}_1}(\mathbf{z}_1)$. This is indeed based on the \textbf{frequentist} view of statistics. From \cref{eq:GP:noise:joint}, we know that
 \begin{equation*}
 p_{\mathbf{Z}_1}(\mathbf{z}_1) = 
@@ -1018,7 +1162,12 @@ where we have used the definition $\mathsf{K}_z:= \mathsf{K}+\sigma_{\epsilon}^2
 \label{eq:marginal}
 \end{equation}
 where the second equality follows because the natural logrithm is an strictly increasing function and does not change the optimizer. The term \textit{marginal} refer to the fact that the likelihood $p_{\mathbf{Z}_1}(\mathbf{z}_1;\theta)$ can be obtained by perfoming marginalization on the PDF given in \cref{eq:GP:noise:joint}. This is sometimes refered as \textbf{emprical Bayes} since pure Baysians believe that this method is fallacious. They argue that when we solve the optimization problem in \cref{eq:marginal} then the hyperparameters $\boldsymbol{\theta}$ will depend on the seen data $\mathbf{y}_1$; however, all of our calculation was based on the fact that they are independent of the observed data \cite[Lecture 9]{Freitas2013}. For this reason, more complicated methods such as Monte Carlo (MC) methods have been developed to optimize the hyperparametrs \cite[Section 45.5]{MacKay2003}. With this in mind, ML is usually done in practice and the numerical results are satisfactory. 
-
+\begin{figure}[t!]
+\centering
+\includegraphics[width=9cm]{figs/cross-validation.png}
+\caption{The figure illustrates a $5$-fold cross validation \cite{sklearn}.}
+\label{fig:cross:validation}
+\end{figure}
 To solve the nonlineaer unconstrained optimization problem in \cref{eq:marginal}, one needs to calculate the gradient. Feeding the result into any gradient solver for such problems could find the solution. According to \cref{eq:GP:noise:joint}, natural logarithm of the ML (log-ML) will be
 \begin{equation*}
 \log p_{\mathbf{Z}_1}(\mathbf{z}_1;\theta) = 
@@ -1055,6 +1204,13 @@ Using \cref{eq:matrix:der}, computing the gradient of log-ML in \cref{eq:ML:log}
 where we used the fact that the trace of a scalar equals the scalar itself along with the linearity of the trace and the general identity $\tr(\mathsf{A}\mathsf{B})=\tr(\mathsf{B}\mathsf{A})$. The computational cost for the ML in \cref{eq:ML:log:grad} is dominated by computing the inverse $\mathsf{K}_z^{-1}$. More specifically, since $\mathsf{K}_z$ is SPD, its inverse can be computed by first calculating the Cholesky decomposition and solving $n$ resulting upper- and lower-triangular linear systems, which takes a work of $\mathcal{O}(n^3)$.
 
 Fig. \ref{fig:marginal:likelihood} illustrates an example of finiding the optimal values for hyperparameters $\boldsymbol{\theta}=(\ell, \sigma_{\epsilon})$ of a GP model with an SE kernel. We observe that there may exist several local optimums as the marginal likelihood is not a convex function.
+\begin{figure}[t!]
+\centering
+\includegraphics[width=17cm]{figs/marginal-likelihood.png}
+\caption{The left figure shows the marginal likelihood as a function of the hyperparameters $\ell$ and $\sigma_{\epsilon}$. Signal's standard
+deviation is chosen to be $\sigma_y^2 = 1$ for a dataset of 7 observations shown by + signs in the other two figures. There are two local optima, indicated with + signs in the left figure. The middle figure shows the function corresponding to the lower left local maximum that has the hyperparameters $(\ell, \sigma_{\epsilon}^2)=(1, 0.2)$ and is indeed the global maximum. This is quite \textit{wiggly} and has low noise and short length-scale. The function corresponding to the top right local maximum has the hyperparameters $(\ell, \sigma_{\epsilon}^2)=(10, 0.8)$. This is quite smooth and has high noise and long length-scale \cite[Section 5.4.1]{Rasmussen2006}. With only 7 data points, there is not enough evidence to confidently decide which is more reasonable, although the more oscillating model (middle figure) has a marginal likelihood that is about 60 percent higher than the other model (right figure)\cite[Section 15.2.4]{Murphy2012}.}
+\label{fig:marginal:likelihood}
+\end{figure}
 
 \subsubsection{Constructing New Kernels}
 As described earlier, the power of GP lies in the choice of the kernel function. This property allows us to introduce domain knowledge into the process and lends GPs their flexibility to capture trends in the training data. For example, by choosing a suitable length-scale for the RBF kernel, we can control how smooth and oscillating the resulting function will be. A big benefit that kernels provide is that they can be combined together, resulting in a more specialized kernel. The decision of which kernel to use is highly dependent on prior knowledge about the data, e.g. if certain characteristics are expected \cite{Gortler2019}.
@@ -1063,12 +1219,6 @@ The only constraint on our choice of covariance function is that it must generat
 \begin{thm}
 The sum and product of two kernels is a kernel.
 \end{thm}
-\begin{figure}[t!]
-\centering
-\includegraphics[width=17cm]{figs/combine-kernels.png}
-\caption{The figures show samples drawn from prior distributions with different kernels. Addition results in an oscillating function with a global trend, while multiplication increases the oscillation amplitude outwards \cite{Gortler2019}.}
-\label{fig:kernels:combine}
-\end{figure}
 For the proof of this theorem, a wide range of kernel functions, and other possibilities of combining kernels see \cite[Section 4.2]{Rasmussen2006}. For example, the sum property can be used to add RBF kernels with different characteristic length-scales and product rule can be employed to produce trending functions with varying oscillations. Fig. \ref{fig:kernels:combine} depicts combinations of a linear and a periodic kernel via summation and multiplication. The two aforementioned kernels are defined as
 \begin{align*}
 \kappa_{\text{per}}(x,x') &= \sigma_y\exp\Big(-\frac{2}{\ell^2}\sin^2\Big(\frac{\pi( x-x')}{p}\Big)\Big), \\
@@ -1079,7 +1229,12 @@ where $(\ell, \sigma_y, p)$ are the hyperparameters of the periodic kernel and $
 
 \subsection{A Real World Example}
 Here, we mention an interesting real world example of GPs in action. The computer graphics and animation fields are filled with applications that require the setting of tricky parameters. In many cases, the models are complex and the parameters are unintuitive for non-experts. \citeauthor{Brochu2010} \cite{Brochu2010} present an optimization method for setting parameters of a procedural fluid animation system by showing the user examples of different parametrized animations and asking for feedback. They simulate the fluid flow by taking the curl of a vector valued potential function which has several technical parameters. In this example, the the aforementioned parameters are the inputs $\mathbf{x}$ and the targets $\mathbf{y}$ are the feedbacks of the user and some previous default data. By introducing an \textbf{active learning} method, they employ the Bayesian technique of bringing in prior belief based on previous runs of the system and expert knowledge to assist users find good parameter settings in as few steps as possible. At the heart of the machinary they have produced, lies the GP introduced in this tutorial. The main benefit is that the GP helps construct an efficient \textbf{explore and exploit} strategy in the input space based on the distribution of uncertainty in that space \cite[Lecture 9]{Freitas2013}. Watch the video of the \textbf{interactive interface} they have created to help users create animations without taking the burdon of adjusting parameters manually \cite{Brochu2010Animation}. Indeed, this idea is not restericted to computer graphics field and can be employed anywhere else that requires the adjusment of techincal parameters.
-
+\begin{figure}[t!]
+\centering
+\includegraphics[width=17cm]{figs/combine-kernels.png}
+\caption{The figures show samples drawn from prior distributions with different kernels. Addition results in an oscillating function with a global trend, while multiplication increases the oscillation amplitude outwards \cite{Gortler2019}.}
+\label{fig:kernels:combine}
+\end{figure}
 
 \section{What is Next?}
 In this tutorial, we took a trip from the basics of GPs to their real world applications. We learned that GPs are \textbf{supervised probabilistic} models with high capability for doing regression. Fortunately, they can also be extended for classification tasks. For this purpose, the main idea is to pass the output values  through a sigmoid function. You can study more about this in \cite[Chapter 3]{Rasmussen2006}. More surprisingly, GPs have several models as their special cases. Indeed, some of the well known results are that
@@ -1094,7 +1249,7 @@ The main drawback of GPs is their $\mathcal{O}(n^3)$ time complexity, which make
 \section{Support}
 I am happy that you have read this so far, showing that you are serious about understanding GPs and machine learning. I tried to write an easy-to-follow and at the same time rigorous introduction to GPs and I hope that it appealed to you. If you liked this tutorial, please give the \href{https://github.com/Hosein-Rahnama/Gaussian-Processes.git}{GitHub repository} of this document a star. Futhermore, you are more than welcomed to report any errors by opening an issue or to suggest further improvements by making pull requests on the repository.
 
-
+\newpage
 \section{References}
 \printbibliography[heading=none]
 
